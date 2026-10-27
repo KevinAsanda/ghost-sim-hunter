@@ -168,45 +168,49 @@ def run_layer1_reconciliation(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
     retail_data_rate = TARIFF_ASSUMPTIONS["retail_data_per_mb_zar"]
     retail_voice_rate = TARIFF_ASSUMPTIONS["retail_voice_per_min_zar"]
 
-    # 1. Check Rollover / Long-validity Bundle Coverage
+    # 1. Subtract only covered Rollover / Long-validity Bundle volume (never exempt residual overage)
     covered_data_mb = np.minimum(df["total_data_mb"], df["entitlement_bundle_mb"])
     covered_voice_min = np.minimum(df["total_voice_mins"], df["entitlement_voice_min"])
     bundle_covered_value_zar = covered_data_mb * retail_data_rate + covered_voice_min * retail_voice_rate
 
     df["is_bundle_entitled"] = (
-        (df["entitlement_bundle_mb"] >= df["total_data_mb"] * 0.90)
-        & (df["entitlement_voice_min"] >= df["total_voice_mins"] * 0.90)
+        (df["entitlement_bundle_mb"] >= df["total_data_mb"])
+        & (df["entitlement_voice_min"] >= df["total_voice_mins"])
         & (df["entitlement_bundle_mb"] > 0)
     )
 
-    # 2. Check Enterprise Parent Pool Coverage
+    # 2. Check full Enterprise Parent Pool Coverage (preserve residual if parent allocation is partial)
     df["is_enterprise_covered"] = (
         df["is_enterprise_child"]
         & (df["parent_account_id"] != "")
-        & (df["parent_account_allocated_zar"] >= df["total_retail_equiv_zar"] * 0.50)
+        & (df["parent_account_allocated_zar"] >= df["total_retail_equiv_zar"])
     )
 
-    # 3. Check Legitimate Public Zero-Rated APN (strictly zero-rated APN, normal volume < 8GB/mo, 0 voice)
+    # 3. Check Legitimate Public Zero-Rated APN (strictly zero-rated APN, normal volume <= 8GB/mo, 0 voice/SMS)
     df["is_legit_zero_rated_apn"] = (
         df["is_zero_rated_eligible"]
         & (df["primary_apn"] == "mtn.zero.edu")
         & (df["total_data_mb"] <= 8000.0)
-        & (df["total_voice_mins"] <= 5.0)
+        & (df["total_voice_mins"] == 0.0)
+        & (df["total_sms_count"] == 0)
     )
 
-    df["is_benign_exempt"] = (
-        df["is_bundle_entitled"]
-        | df["is_enterprise_covered"]
-        | df["is_legit_zero_rated_apn"]
+    zero_rated_value_zar = np.where(
+        df["is_zero_rated_eligible"] & (df["primary_apn"] == "mtn.zero.edu"),
+        np.minimum(df["total_data_mb"], 8000.0) * retail_data_rate,
+        0.0,
     )
 
-    # Compute Uncovered / Unbilled Retail Value (ZAR) after subtracting legitimate entitlements & revenue
+    # Compute Uncovered / Unbilled Retail Value (ZAR) after subtracting actual covered amounts
     raw_unbilled = (
         df["total_retail_equiv_zar"]
         - df["total_revenue_zar"]
         - bundle_covered_value_zar
+        - zero_rated_value_zar
     )
-    df["unbilled_retail_zar"] = np.where(df["is_benign_exempt"], 0.0, np.maximum(0.0, raw_unbilled)).round(2)
+    df["unbilled_retail_zar"] = np.maximum(0.0, raw_unbilled).round(2)
+    df["estimated_opportunity_zar"] = df["unbilled_retail_zar"]
+    df["is_benign_exempt"] = df["unbilled_retail_zar"] == 0.0
 
     # -----------------------------------------------------------------------
     # Deterministic Reconciliation Rules (Layer 1 Flags)
@@ -287,23 +291,23 @@ def run_layer2_anomaly_scoring(df: pd.DataFrame, random_state: int = 42) -> pd.D
         top_driver_2.append(f"{FEATURE_LABELS[f2]} ({normalized_contrib[i, order[1]]*100:.0f}%)")
         top_driver_3.append(f"{FEATURE_LABELS[f3]} ({normalized_contrib[i, order[2]]*100:.0f}%)")
 
-    df["shap_driver_1"] = top_driver_1
-    df["shap_driver_2"] = top_driver_2
-    df["shap_driver_3"] = top_driver_3
+    df["deviation_indicator_1"] = top_driver_1
+    df["deviation_indicator_2"] = top_driver_2
+    df["deviation_indicator_3"] = top_driver_3
 
     for idx_col, col_name in enumerate(FEATURE_COLS):
         df[f"contrib_{col_name}"] = np.round(normalized_contrib[:, idx_col], 4)
 
-    # Combined Confidence Score (Rules + ML, zeroed if proven benign exempt)
-    combined_conf = np.where(
-        df["is_benign_exempt"],
-        0.02 * df["layer2_ml_score"],
+    # Combined Risk Score (Rules + ML prioritization score, not calibrated probability)
+    combined_risk = np.where(
+        df["unbilled_retail_zar"] <= 0,
+        0.0,
         0.60 * df["layer1_rule_score"] + 0.40 * df["layer2_ml_score"],
     )
-    df["confidence_score"] = np.clip(combined_conf, 0.0, 0.99).round(4)
+    df["risk_score"] = np.clip(combined_risk, 0.0, 0.99).round(4)
 
-    # Priority Score = Unbilled Retail Value (ZAR) * Confidence Score
-    df["priority_score"] = (df["unbilled_retail_zar"] * df["confidence_score"]).round(2)
+    # Priority Score = Unbilled Retail Value (ZAR) * Risk Score
+    df["priority_score"] = (df["unbilled_retail_zar"] * df["risk_score"]).round(2)
 
     # -----------------------------------------------------------------------
     # Baseline Comparison: Naive Threshold Report ("R0 direct SIM revenue, sort by retail usage")

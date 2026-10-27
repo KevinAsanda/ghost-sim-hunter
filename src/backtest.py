@@ -126,6 +126,7 @@ def evaluate_backtest(df: pd.DataFrame, top_k: int = 100) -> Dict[str, Any]:
     )
 
     return {
+        "label": "Synthetic benchmark results — not validated production accuracy",
         "top_k": top_k,
         "total_sims": len(df),
         "total_true_leakage_sims": total_true_leakage_sims,

@@ -1,919 +1,2454 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="bright">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ghost SIM Hunter | Zero-Revenue Active SIMs (MTN Revenue Assurance MVP)</title>
-  <style>
-    :root {
-      --bg-dark: #0b1120;
-      --bg-card: #151f32;
-      --bg-card-hover: #1e293b;
-      --border: #263554;
-      --mtn-yellow: #ffcc00;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --emerald: #10b981;
-      --amber: #f59e0b;
-      --rose: #f43f5e;
-      --cyan: #06b6d4;
-      --violet: #8b5cf6;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      line-height: 1.5;
-    }
-    header {
-      background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
-      border-bottom: 3px solid var(--mtn-yellow);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .brand-title {
-      display: flex;
-      align-items: center;
-      gap: 0.85rem;
-    }
-    .mtn-pill {
-      background: var(--mtn-yellow);
-      color: #0b1120;
-      font-weight: 900;
-      font-size: 0.9rem;
-      padding: 0.35rem 0.7rem;
-      border-radius: 999px;
-      letter-spacing: 0.05em;
-    }
-    h1 {
-      margin: 0;
-      font-size: 1.45rem;
-      color: var(--mtn-yellow);
-    }
-    .subtitle {
-      margin: 0.15rem 0 0 0;
-      font-size: 0.86rem;
-      color: var(--text-muted);
-    }
-    .guardrail-badge {
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid var(--emerald);
-      color: #6ee7b7;
-      padding: 0.45rem 0.9rem;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-    .container {
-      max-width: 1480px;
-      margin: 0 auto;
-      padding: 1.25rem 2rem 3rem 2rem;
-    }
-    /* KPI Grid */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.4rem;
-    }
-    .kpi-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem 1.2rem;
-    }
-    .kpi-label {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text-muted);
-    }
-    .kpi-value {
-      font-size: 1.65rem;
-      font-weight: 800;
-      margin: 0.25rem 0;
-      color: #fff;
-    }
-    .kpi-delta {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--emerald);
-    }
-    /* Tabs */
-    .tabs {
-      display: flex;
-      gap: 0.5rem;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 1.25rem;
-      overflow-x: auto;
-    }
-    .tab-btn {
-      background: transparent;
-      color: var(--text-muted);
-      border: none;
-      border-bottom: 3px solid transparent;
-      padding: 0.75rem 1.2rem;
-      font-size: 0.92rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .tab-btn:hover { color: #fff; background: rgba(255,255,255,0.03); }
-    .tab-btn.active {
-      color: var(--mtn-yellow);
-      border-bottom-color: var(--mtn-yellow);
-      background: rgba(255, 204, 0, 0.06);
-    }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-    /* Controls & Cards */
-    .panel-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.2rem;
-      margin-bottom: 1.2rem;
-    }
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-      margin-bottom: 1rem;
-    }
-    .panel-title {
-      margin: 0;
-      font-size: 1.1rem;
-      color: #fff;
-    }
-    .controls-row {
-      display: flex;
-      gap: 0.75rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    select, input {
-      background: #0f172a;
-      color: #fff;
-      border: 1px solid var(--border);
-      padding: 0.48rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.86rem;
-    }
-    .btn {
-      background: var(--mtn-yellow);
-      color: #0b1120;
-      border: none;
-      padding: 0.5rem 0.95rem;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .btn:hover { filter: brightness(1.08); }
-    .btn-secondary {
-      background: #1e293b;
-      color: #e2e8f0;
-      border: 1px solid var(--border);
-    }
-    .btn-emerald {
-      background: var(--emerald);
-      color: #052e16;
-    }
-    /* Tables */
-    .table-wrap {
-      overflow-x: auto;
-      max-height: 460px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.83rem;
-    }
-    th {
-      background: #0f172a;
-      color: var(--text-muted);
-      text-align: left;
-      padding: 0.65rem 0.75rem;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-    td {
-      padding: 0.6rem 0.75rem;
-      border-bottom: 1px solid rgba(38, 53, 84, 0.55);
-      white-space: nowrap;
-    }
-    tr:hover td { background: var(--bg-card-hover); cursor: pointer; }
-    .tag {
-      padding: 0.2rem 0.55rem;
-      border-radius: 999px;
-      font-size: 0.74rem;
-      font-weight: 600;
-    }
-    .tag-fraud { background: rgba(244, 63, 94, 0.2); color: #fda4af; border: 1px solid rgba(244,63,94,0.4); }
-    .tag-orphan { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid rgba(245,158,11,0.4); }
-    .tag-iot { background: rgba(6, 182, 212, 0.2); color: #a5f3fc; border: 1px solid rgba(6,182,212,0.4); }
-    .tag-internal { background: rgba(139, 92, 246, 0.2); color: #ddd6fe; border: 1px solid rgba(139,92,246,0.4); }
-    .tag-ticketed { background: rgba(16, 185, 129, 0.22); color: #6ee7b7; border: 1px solid var(--emerald); }
-    .tag-open { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
-    /* Grid 2 col */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.2rem;
-    }
-    @media (max-width: 1024px) {
-      .grid-2 { grid-template-columns: 1fr; }
-    }
-    /* Horizontal Bar Charts */
-    .bar-row {
-      margin-bottom: 0.7rem;
-    }
-    .bar-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.82rem;
-      margin-bottom: 0.25rem;
-    }
-    .bar-track {
-      width: 100%;
-      height: 10px;
-      background: #0f172a;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .bar-fill {
-      height: 100%;
-      border-radius: 999px;
-    }
-    /* Forensic 5-Point Grid */
-    .check-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 0.85rem;
-      margin: 1rem 0;
-    }
-    .check-box {
-      background: #0f172a;
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--mtn-yellow);
-      border-radius: 8px;
-      padding: 0.8rem 1rem;
-    }
-    .check-box.alert { border-left-color: var(--rose); }
-    .check-box h4 { margin: 0 0 0.25rem 0; font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; }
-    .check-box .val { font-size: 1.05rem; font-weight: 700; color: #fff; }
-    .check-box .sub { font-size: 0.78rem; color: var(--amber); margin-top: 0.2rem; }
-    .evidence-banner {
-      background: rgba(255, 204, 0, 0.08);
-      border: 1px solid rgba(255, 204, 0, 0.35);
-      border-radius: 8px;
-      padding: 1rem 1.2rem;
-      margin-bottom: 1rem;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MTN Ghost SIM Hunter · Revenue Assurance & RAN Analytics</title>
+<style>
+/* ==========================================================================
+   MTN Brighter Sans Typography (loaded from CDN with clean geometric fallback)
+   ========================================================================== */
+@font-face {
+  font-family: 'MTNBrighterSans';
+  src: url("https://cdn.prod.website-files.com/63e5615ad9f7af935042c808/63e56284cf6fcdba6f5a7d7a_MTNBrighterSans-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MTNBrighterSans';
+  src: url("https://cdn.prod.website-files.com/63e5615ad9f7af935042c808/63e5628447c67e5a7d80c50b_MTNBrighterSans-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MTNBrighterSans';
+  src: url("https://cdn.prod.website-files.com/63e5615ad9f7af935042c808/63e5628432acd64306111220_MTNBrighterSans-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MTNBrighterSans';
+  src: url("https://cdn.prod.website-files.com/63e5615ad9f7af935042c808/63e5628447c67e13d580c509_MTNBrighterSans-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MTNBrighterSans';
+  src: url("https://cdn.prod.website-files.com/63e5615ad9f7af935042c808/63e562849e4191a7680db0cf_MTNBrighterSans-ExtraBold.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==========================================================================
+   MTN Design Tokens (Inspired by tejiri.webflow.io/mtn & MTN Brighter Brand)
+   ========================================================================== */
+:root,
+html[data-theme="bright"] {
+  color-scheme: light;
+  --mtn-yellow: #ffcb05;
+  --mtn-yellow-soft: #f6d15f;
+  --mtn-yellow-tint: #fff8db;
+  --mtn-yellow-border: #ebd069;
+  --mtn-black: #121212;
+  --mtn-charcoal: #202020;
+  --bg: #f4f1e8;
+  --bg-subtle: #ebe7dc;
+  --panel: #ffffff;
+  --panel-alt: #faf8f2;
+  --line: #e2dfd5;
+  --line-strong: #c9c4b5;
+  --text: #121212;
+  --text-secondary: #383838;
+  --muted: #636360;
+  --accent: #ffcb05;
+  --accent-ink: #121212;
+  --link: #795e0b;
+  --success: #008060;
+  --success-bg: #e6f5f0;
+  --warn: #b45309;
+  --warn-bg: #fef3c7;
+  --danger: #c81e1e;
+  --danger-bg: #fde8e8;
+  --info: #03487c;
+  --info-bg: #e6f0fa;
+  --shadow-sm: 0 4px 14px rgba(18, 18, 18, 0.04);
+  --shadow-md: 0 12px 32px rgba(18, 18, 18, 0.07);
+  --shadow-lg: 0 24px 60px rgba(18, 18, 18, 0.16);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --mtn-yellow: #ffcb05;
+  --mtn-yellow-soft: #f6d15f;
+  --mtn-yellow-tint: rgba(255, 203, 5, 0.12);
+  --mtn-yellow-border: rgba(255, 203, 5, 0.35);
+  --mtn-black: #121212;
+  --mtn-charcoal: #1c1e26;
+  --bg: #111318;
+  --bg-subtle: #181b22;
+  --panel: #1b1f27;
+  --panel-alt: #222731;
+  --line: #2e3442;
+  --line-strong: #434b5e;
+  --text: #f5f6f8;
+  --text-secondary: #d5d9e2;
+  --muted: #9aa3b5;
+  --accent: #ffcb05;
+  --accent-ink: #121212;
+  --link: #ffcb05;
+  --success: #34d399;
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --warn: #fbbf24;
+  --warn-bg: rgba(245, 158, 11, 0.16);
+  --danger: #f87171;
+  --danger-bg: rgba(239, 68, 68, 0.16);
+  --info: #60a5fa;
+  --info-bg: rgba(59, 130, 246, 0.16);
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 14px 34px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.6);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'MTNBrighterSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   Top MTN Brand Navigation Bar
+   ========================================================================== */
+.topbar {
+  background: var(--mtn-black);
+  color: #ffffff;
+  border-bottom: 3px solid var(--mtn-yellow);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.topbar-inner {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Authentic MTN Oval Logo */
+.mtn-oval {
+  background: var(--mtn-yellow);
+  color: #121212;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  padding: 6px 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: 1.5px;
+  font-style: italic;
+  box-shadow: 0 3px 10px rgba(255, 203, 5, 0.25);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.brand-titles h1 {
+  font-size: 21px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.2px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.brand-subtitle {
+  font-size: 13px;
+  color: #d6d3c9;
+  font-weight: 300;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.guardrail-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f3f1ea;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.guardrail-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #12b878;
+  box-shadow: 0 0 0 3px rgba(18, 184, 120, 0.25);
+}
+
+.theme-btn {
+  background: rgba(255, 203, 5, 0.14);
+  color: var(--mtn-yellow);
+  border: 1px solid rgba(255, 203, 5, 0.4);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.theme-btn:hover {
+  background: var(--mtn-yellow);
+  color: #121212;
+}
+
+/* ==========================================================================
+   Main Container & MTN Hero Ribbon (Tejiri Webflow Style)
+   ========================================================================== */
+main {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.hero-banner {
+  background: linear-gradient(135deg, var(--mtn-yellow) 0%, var(--mtn-yellow-soft) 100%);
+  color: #121212;
+  border-radius: var(--radius-lg);
+  padding: 26px 32px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-banner::after {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+}
+
+.hero-copy {
+  max-width: 780px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Signature Tejiri .mt3 asymmetric speech-bubble badge */
+.mtn-speech-pill {
+  display: inline-block;
+  background: #121212;
+  color: var(--mtn-yellow);
+  border-radius: 100px 100px 100px 0;
+  padding: 5px 16px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.hero-copy h2 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: #121212;
+}
+
+.hero-copy p {
+  margin: 0;
+  color: #262214;
+  font-size: 14.5px;
+  font-weight: 400;
+}
+
+.hero-quick-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   4-Step Guided Workflow Tracker
+   ========================================================================== */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0;
+  margin: 0 0 22px;
+  list-style: none;
+}
+
+.steps li {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.step-num {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--line-strong);
+}
+
+.steps li.active {
+  border-color: var(--mtn-yellow);
+  box-shadow: 0 0 0 2px var(--mtn-yellow), var(--shadow-sm);
+  background: var(--mtn-yellow-tint);
+}
+
+.steps li.active .step-num {
+  background: var(--mtn-black);
+  color: var(--mtn-yellow);
+  border-color: var(--mtn-black);
+}
+
+.steps li.done {
+  border-color: var(--success);
+}
+
+.steps li.done .step-num {
+  background: var(--success);
+  color: #ffffff;
+  border-color: var(--success);
+}
+
+.step-body strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.step-body span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+/* ==========================================================================
+   Panels, Typography & Layout Helpers
+   ========================================================================== */
+h2 {
+  font-size: 21px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  letter-spacing: -0.3px;
+}
+
+h3 {
+  font-size: 16.5px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+p {
+  margin: 6px 0 14px;
+}
+
+.subtle, small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  margin-bottom: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.panel-sub {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin-top: 16px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-end;
+}
+
+.row-between {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grow {
+  flex: 1;
+}
+
+.row > * {
+  min-width: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* ==========================================================================
+   Form Controls & MTN Pill Buttons
+   ========================================================================== */
+label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
+}
+
+input, select, textarea, button {
+  font: inherit;
+}
+
+input, select, textarea {
+  max-width: 100%;
+  background: var(--panel-alt);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--mtn-black);
+  box-shadow: 0 0 0 3px rgba(255, 203, 5, 0.35);
+}
+
+label > input, label > select, label > textarea {
+  display: block;
+  margin-top: 6px;
+  width: 100%;
+  font-weight: 400;
+}
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--mtn-black);
+  cursor: pointer;
+}
+
+button, .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  padding: 10px 20px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+button:hover:not(:disabled), .button:hover {
+  border-color: var(--text);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+button.primary {
+  background: var(--mtn-yellow);
+  color: #121212;
+  border-color: #121212;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(255, 203, 5, 0.3);
+}
+
+button.primary:hover:not(:disabled) {
+  background: #ffd633;
+  box-shadow: 0 6px 16px rgba(255, 203, 5, 0.45);
+}
+
+button.dark-cta {
+  background: #121212;
+  color: var(--mtn-yellow);
+  border-color: #121212;
+  font-weight: 800;
+}
+
+button.dark-cta:hover:not(:disabled) {
+  background: #262626;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+a {
+  color: var(--link);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--mtn-yellow);
+  outline-offset: 2px;
+}
+
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.check {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 16px;
+  background: var(--mtn-yellow-tint);
+  border: 1px solid var(--mtn-yellow-border);
+  border-radius: var(--radius-sm);
+  margin: 12px 0;
+  cursor: pointer;
+}
+
+.check input {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Upload Cards & Quality Gate
+   ========================================================================== */
+.upload-card {
+  background: var(--panel-alt);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: border-color 0.15s ease;
+}
+
+.upload-card:hover {
+  border-color: var(--mtn-yellow);
+}
+
+.upload-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.upload-card-cols {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.quality-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.quality-kpi {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.quality-kpi small {
+  display: block;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quality-kpi strong {
+  display: block;
+  font-size: 18px;
+  margin-top: 3px;
+}
+
+#quality-issues {
+  max-height: 280px;
+  overflow: auto;
+  padding-left: 18px;
+  margin: 10px 0;
+}
+
+#quality-issues li {
+  margin: 7px 0;
+  font-size: 13.5px;
+}
+
+/* ==========================================================================
+   Status Banner & Notifications
+   ========================================================================== */
+.notice {
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-left: 5px solid var(--mtn-yellow);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  white-space: pre-wrap;
+}
+
+.notice.error, .error {
+  color: var(--danger);
+  border-left-color: var(--danger);
+}
+
+#feedback:empty, #case-feedback:empty {
+  display: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Executive KPI Metric Cards (Tejiri MTN Balance Card Style)
+   ========================================================================== */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0 14px;
+}
+
+.metric {
+  padding: 20px 22px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.metric.primary-metric {
+  background: var(--mtn-black);
+  color: #ffffff;
+  border-color: var(--mtn-black);
+}
+
+.metric.primary-metric small {
+  color: #cfccc2;
+}
+
+.metric.primary-metric strong {
+  color: var(--mtn-yellow);
+}
+
+.metric-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 6px;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+.metric.primary-metric .metric-tag {
+  background: rgba(255, 203, 5, 0.18);
+  color: var(--mtn-yellow);
+}
+
+.metric strong {
+  display: block;
+  font-size: 26px;
+  font-weight: 800;
+  margin: 6px 0;
+  letter-spacing: -0.5px;
+}
+
+.metric small {
+  display: block;
+  line-height: 1.35;
+}
+
+.excluded-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  background: var(--mtn-yellow-tint);
+  border: 1px solid var(--mtn-yellow-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 18px;
+  font-size: 13.5px;
+}
+
+/* ==========================================================================
+   Workspace Sub-Tabs & Status Quick Pills
+   ========================================================================== */
+.workspace-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 10px;
+}
+
+.tab-btn {
+  border-radius: var(--radius-pill);
+  padding: 9px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.tab-btn.active {
+  background: var(--mtn-black);
+  color: var(--mtn-yellow);
+  border-color: var(--mtn-black);
+}
+
+.status-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.status-pill-btn {
+  padding: 6px 14px;
+  font-size: 12.5px;
+  border-radius: var(--radius-pill);
+  background: var(--panel-alt);
+  border: 1px solid var(--line-strong);
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.status-pill-btn.active {
+  background: var(--mtn-yellow);
+  color: #121212;
+  border-color: #121212;
+}
+
+/* ==========================================================================
+   Queue Table, Risk Bars, Coverage Mini-Bars & Status Badges
+   ========================================================================== */
+.table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13.5px;
+  background: var(--panel);
+}
+
+th, td {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+th {
+  white-space: nowrap;
+  background: var(--panel-alt);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+tbody tr {
+  transition: background 0.12s ease;
+}
+
+tbody tr:hover {
+  background: var(--mtn-yellow-tint);
+}
+
+td button.link {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--text);
+  font-weight: 800;
+  font-size: 14.5px;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: var(--mtn-yellow);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+td button.link:hover {
+  color: var(--link);
+  transform: none;
+  box-shadow: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.badge-NEW {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+.badge-INVESTIGATING {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.badge-CONFIRMED {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.badge-DISMISSED {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.badge-RESOLVED {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.archetype-chip {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 9px;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.meta-inline {
+  display: block;
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.risk-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 110px;
+}
+
+.risk-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-subtle);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.risk-fill {
+  height: 100%;
+  background: var(--mtn-yellow);
+  border-radius: 999px;
+}
+
+.risk-fill.high {
+  background: #e02424;
+}
+
+.risk-fill.med {
+  background: #f59e0b;
+}
+
+.inspect-pill {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--mtn-yellow-tint);
+  border: 1px solid var(--mtn-yellow-border);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.toolbar {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* ==========================================================================
+   Slide-Over Forensic Case Inspector (<dialog>)
+   ========================================================================== */
+dialog {
+  margin: 0 0 0 auto;
+  padding: 0;
+  width: min(760px, 100vw);
+  height: 100dvh;
+  max-height: 100dvh;
+  max-width: 100vw;
+  background: var(--bg);
+  color: var(--text);
+  border: 0;
+  border-left: 2px solid var(--mtn-yellow);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+}
+
+dialog::backdrop {
+  background: rgba(18, 18, 18, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.inspector-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--mtn-black);
+  color: #ffffff;
+  padding: 20px 26px;
+  border-bottom: 3px solid var(--mtn-yellow);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.inspector-top h2 {
+  color: var(--mtn-yellow);
+  margin: 0 0 4px;
+  font-size: 22px;
+}
+
+.inspector-top p {
+  margin: 0;
+  color: #dcd9d0;
+  font-size: 13.5px;
+}
+
+.inspector-body {
+  padding: 24px 26px 40px;
+}
+
+.evidence-box {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--mtn-yellow);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.recommendation-box {
+  background: var(--mtn-yellow-tint);
+  border: 1px solid var(--mtn-yellow-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 10px;
+}
+
+/* Visual Coverage Waterfall Bar */
+.coverage-bar-wrap {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-bottom: 18px;
+}
+
+.stacked-bar {
+  display: flex;
+  height: 14px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--bg-subtle);
+  margin: 10px 0 14px;
+  border: 1px solid var(--line);
+}
+
+.seg-covered {
+  background: #10b981;
+}
+
+.seg-pending {
+  background: #f59e0b;
+}
+
+.seg-unbilled {
+  background: #e02424;
+}
+
+dl#coverage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 18px;
+  font-size: 13px;
+  margin: 0;
+}
+
+dl#coverage dt {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+dl#coverage dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+  border-bottom: 1px dotted var(--line);
+  padding-bottom: 4px;
+}
+
+/* Deviation Indicator Bars */
+ul#indicators {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+
+ul#indicators li {
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ind-bar-track {
+  height: 7px;
+  background: var(--bg-subtle);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.ind-bar-fill {
+  height: 100%;
+  background: var(--mtn-yellow);
+  border-radius: 999px;
+}
+
+.history {
+  padding-left: 20px;
+  margin: 12px 0 0;
+}
+
+.history li {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.outcomes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+details {
+  margin: 14px 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+}
+
+details > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 14.5px;
+}
+
+.empty {
+  padding: 36px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .steps, .metrics, .quality-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  main {
+    padding: 16px;
+  }
+  .topbar-inner {
+    padding: 12px 16px;
+  }
+  .hero-banner {
+    padding: 20px;
+  }
+  .grid, .metrics, .steps, .quality-kpis, .outcomes, dl#coverage {
+    grid-template-columns: 1fr;
+  }
+  dl#coverage dd {
+    text-align: left;
+  }
+  .panel, .inspector-body {
+    padding: 16px;
+  }
+}
+</style>
 </head>
 <body>
 
-  <header>
-    <div class="brand-title">
-      <span class="mtn-pill">MTN</span>
-      <div>
-        <h1>Ghost SIM Hunter — Zero-Revenue Active SIMs</h1>
-        <p class="subtitle">Intelligent Automation &amp; OSS/BSS Revenue Assurance Engine · Daily Batch Reconciliation + Isolation Forest + Root-Cause Diagnostics</p>
+<!-- ========================================================================
+     Top MTN Brand Bar
+     ======================================================================== -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand-wrap">
+      <div class="mtn-oval" aria-label="MTN">MTN</div>
+      <div class="brand-titles">
+        <h1>Ghost SIM Hunter</h1>
+        <div class="brand-subtitle">Zero-Revenue Active SIMs · Revenue Assurance &amp; RAN Analytics Workbench</div>
       </div>
     </div>
-    <div class="guardrail-badge">
-      🛡️ ZERO CUSTOMER IMPACT MODE: Recommend-Only (Auto-Blocking Disabled)
+    <div class="topbar-actions">
+      <span class="guardrail-pill">
+        <span class="guardrail-dot"></span>
+        Recommend-Only · Zero Customer Impact
+      </span>
+      <span class="guardrail-pill">Internal Case Store · SQLite</span>
+      <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle Bright or Dark MTN theme">🌙 Dark Theme</button>
     </div>
-  </header>
+  </div>
+</header>
 
-  <div class="container">
-    <!-- Top KPI Strip -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">Precision@100 (vs Ground Truth)</div>
-        <div class="kpi-value" id="kpi-prec">100.0%</div>
-        <div class="kpi-delta" id="kpi-prec-delta">+77.0% vs Naive R0 Baseline (23.0%)</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Benign Look-Alike FPR@100</div>
-        <div class="kpi-value" id="kpi-fpr">0.0%</div>
-        <div class="kpi-delta" id="kpi-fpr-delta">0 False Positives (vs 77 in Naive Report)</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Top-100 Unbilled Retail Value</div>
-        <div class="kpi-value" id="kpi-retail">R 443,005</div>
-        <div class="kpi-delta" id="kpi-retail-yr">R 5.32M Annualised Retail Tariff Value</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Top-100 Est. Cash Recoverable</div>
-        <div class="kpi-value" id="kpi-rec">R 301,813 /mo</div>
-        <div class="kpi-delta" id="kpi-rec-range">Range: R 226k – R 349k /mo (Marginal Cost: R 100k)</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Session Ticketed Recovery</div>
-        <div class="kpi-value" id="kpi-actioned" style="color: var(--mtn-yellow);">R 0 /mo</div>
-        <div class="kpi-delta" id="kpi-actioned-cnt">0 Cases Dispatched to SMEs</div>
-      </div>
+<main>
+  <!-- ======================================================================
+       MTN Brighter Hero Banner (Inspired by tejiri.webflow.io/mtn)
+       ====================================================================== -->
+  <section class="hero-banner" aria-label="Overview">
+    <div class="hero-copy">
+      <span class="mtn-speech-pill">Evidence Before Action · Ledger-v2</span>
+      <h2>Find unbilled active SIMs without flagging legitimate R0 subscribers.</h2>
+      <p>Reconciles rollover bundles, corporate parent pools, zero-rated APNs (<code>mtn.zero.edu</code>), and delayed billing grace periods row-by-row before ranking residual revenue leakage.</p>
     </div>
-
-    <!-- Navigation Tabs -->
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('tab-queue', this)">📋 1. Daily Top-100 Case Queue</button>
-      <button class="tab-btn" onclick="switchTab('tab-drill', this)">🔍 2. Single-SIM Forensic Inspector</button>
-      <button class="tab-btn" onclick="switchTab('tab-ran', this)">🗺️ 3. RAN / Cell-ID Cluster Analytics</button>
-      <button class="tab-btn" onclick="switchTab('tab-backtest', this)">📈 4. Backtest &amp; Defensible Business Case</button>
-      <button class="tab-btn" onclick="switchTab('tab-arch', this)">🔌 5. Architecture &amp; Data Contract</button>
+    <div class="hero-quick-actions">
+      <button id="demo" class="dark-cta" type="button">⚡ Load 3,000-SIM Synthetic Benchmark</button>
+      <button id="sample" type="button" style="background:#ffffff;color:#121212;border-color:#121212">🧪 Load 4-SIM Edge-Case Sample</button>
     </div>
+  </section>
 
-    <!-- TAB 1: DAILY TOP-100 QUEUE -->
-    <div id="tab-queue" class="tab-panel active">
-      <div class="panel-card">
-        <div class="panel-header">
-          <div>
-            <h3 class="panel-title">Daily Ranked Revenue Assurance Case Queue</h3>
-            <span style="font-size:0.82rem; color:var(--text-muted);">
-              Click any SIM row to open its full 5-Point Forensic Investigation in Tab 2. Ranked by <b>Uncovered Retail Value × Hybrid Confidence</b>.
-            </span>
+  <!-- ======================================================================
+       4-Step Interactive Workflow Progress Tracker
+       ====================================================================== -->
+  <ol class="steps" aria-label="Workflow">
+    <li id="step-1" class="active">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <strong>1. Connect Dataset</strong>
+        <span>Upload 3 CSV/Parquet files, pick a saved dataset, or load a sample.</span>
+      </div>
+    </li>
+    <li id="step-2">
+      <span class="step-num">2</span>
+      <div class="step-body">
+        <strong>2. Review Data Quality</strong>
+        <span>Verify dates, duplicates, unmatched SIM IDs &amp; billing grace window.</span>
+      </div>
+    </li>
+    <li id="step-3">
+      <span class="step-num">3</span>
+      <div class="step-body">
+        <strong>3. Run Detection</strong>
+        <span>Reconcile record-level entitlements &amp; compute peer deviation scores.</span>
+      </div>
+    </li>
+    <li id="step-4">
+      <span class="step-num">4</span>
+      <div class="step-body">
+        <strong>4. Investigate Cases</strong>
+        <span>Inspect 5-point evidence, assign owners &amp; log verified ZAR outcomes.</span>
+      </div>
+    </li>
+  </ol>
+
+  <!-- Live Status Feedback Banner -->
+  <p id="feedback" role="status" aria-live="polite" class="notice"></p>
+
+  <!-- ======================================================================
+       Step 1, 2 & 3 Panel: Dataset Selection, Upload & Quality Gate
+       ====================================================================== -->
+  <section class="panel" aria-label="Dataset and Data Quality">
+    <div class="row">
+      <label class="grow">
+        Active or saved dataset
+        <select id="dataset-select">
+          <option value="">Choose a saved dataset…</option>
+        </select>
+      </label>
+    </div>
+    <p class="subtle" id="dataset-meta">Choose a saved dataset above, click one of the quick-load buttons in the yellow banner, or upload your own three files below. Nothing is generated automatically on startup.</p>
+
+    <details id="upload-details" open>
+      <summary>📂 Upload subscriber, daily usage, and billing files (CSV or Parquet)</summary>
+      <form id="upload-form" style="margin-top:16px">
+        <fieldset id="upload-fields">
+          <div class="row">
+            <label class="grow">
+              Dataset label
+              <input id="dataset-name" required maxlength="120" value="Uploaded analysis">
+            </label>
+            <label>
+              Analysis as-of date
+              <input id="as-of" type="date" required>
+            </label>
+            <label>
+              Billing delay grace allowance (days)
+              <input id="grace" type="number" min="0" max="60" value="3" required>
+            </label>
           </div>
-          <div class="controls-row">
-            <select id="filter-archetype" onchange="loadSummary()">
-              <option value="ALL">All Root-Cause Archetypes</option>
-              <option value="SIM_BOX_FRAUD">SIM Box / Interconnect Bypass</option>
-              <option value="PROVISIONING_ORPHAN">Provisioning Orphan (HLR/OCS Desync)</option>
-              <option value="RATING_MISCONFIG">Tariff / APN Rating Misconfiguration</option>
-              <option value="IOT_WRONG_APN">IoT SIM on Unbilled Consumer APN</option>
-              <option value="FREE_INTERNAL_ABUSE">Test / Staff / Internal SIM Abuse</option>
-            </select>
-            <select id="filter-plan" onchange="loadSummary()">
-              <option value="ALL">All Plan Types</option>
-              <option value="PREPAID">PREPAID</option>
-              <option value="POSTPAID">POSTPAID</option>
-              <option value="ENTERPRISE">ENTERPRISE</option>
-              <option value="IOT_M2M">IOT_M2M</option>
-              <option value="INTERNAL_TEST">INTERNAL_TEST</option>
-            </select>
-            <button class="btn btn-emerald" onclick="batchTicketTop25()">⚡ Batch-Ticket Top 25 Cases</button>
-            <a class="btn btn-secondary" href="/api/export/top100.csv">⬇️ Export Queue CSV</a>
+
+          <div class="grid" style="margin-top:16px">
+            <div class="upload-card">
+              <div class="upload-card-title">
+                <span>1. Subscribers Master</span>
+                <a href="/api/templates/subscribers.csv">Template CSV</a>
+              </div>
+              <div class="upload-card-cols">Required: <code>sim_id</code>, <code>account_id</code>, <code>plan_type</code>, <code>hlr_status</code>, <code>billing_status</code>, <code>activation_date</code></div>
+              <label>Choose file<input id="subscribers" type="file" accept=".csv,.parquet" required></label>
+            </div>
+
+            <div class="upload-card">
+              <div class="upload-card-title">
+                <span>2. Daily Usage (CDR Aggregate)</span>
+                <a href="/api/templates/usage_daily.csv">Template CSV</a>
+              </div>
+              <div class="upload-card-cols">Required: <code>sim_id</code>, <code>usage_date</code>, <code>primary_apn</code>, <code>cell_id</code>, <code>data_mb</code>, <code>voice_mins</code>, <code>sms_count</code></div>
+              <label>Choose file<input id="usage_daily" type="file" accept=".csv,.parquet" required></label>
+            </div>
+
+            <div class="upload-card">
+              <div class="upload-card-title">
+                <span>3. Billing &amp; Entitlements</span>
+                <a href="/api/templates/billing_events.csv">Template CSV</a>
+              </div>
+              <div class="upload-card-cols">Required: <code>sim_id</code>, <code>billed_revenue_zar</code>, <code>entitlement_bundle_mb</code>, <code>entitlement_voice_min</code>, <code>parent_account_allocated_zar</code></div>
+              <label>Choose file<input id="billing_events" type="file" accept=".csv,.parquet" required></label>
+            </div>
           </div>
+
+          <p class="subtle" style="margin-top:12px">
+            UTF-8 CSV up to 15 MB and 100,000 rows per file (one analysis window covers at most 31 days). Use anonymized identifiers. For the template CSVs, use as-of date <strong>2026-10-27</strong> and a <strong>3-day</strong> billing allowance.
+          </p>
+          <button class="primary" type="submit">✓ Validate Uploaded Files</button>
+        </fieldset>
+      </form>
+    </details>
+
+    <!-- Step 2 & 3: Data Quality Review Gate -->
+    <div id="quality" class="panel-sub" hidden>
+      <div class="row-between">
+        <div>
+          <h3 style="margin-bottom:4px">Step 2 · Data Quality &amp; Reconciliation Gate</h3>
+          <p id="quality-summary" class="subtle" style="margin:0"></p>
+        </div>
+        <button class="primary" id="run" type="button" disabled>▶ Run Detection</button>
+      </div>
+
+      <div id="quality-kpis" class="quality-kpis"></div>
+      <ul id="quality-issues"></ul>
+
+      <label class="check" id="ack-wrap">
+        <input id="ack" type="checkbox">
+        <span>I have reviewed the data quality warnings and understand the stated tariff &amp; billing grace assumptions.</span>
+      </label>
+      <p class="subtle" style="margin-bottom:0">
+        <strong>How reconciliation works:</strong> Missing explicit rates use reference tariffs (R0.29/MB, R1.20/min, R0.50/SMS). Usage inside the billing grace window stays in <em>Awaiting Billing</em>, and SIMs absent from the billing extract stay in <em>Missing Billing Evidence</em>—neither inflates <em>Estimated Opportunity</em>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       Step 4: Investigation Workspace
+       ====================================================================== -->
+  <section id="workspace" hidden aria-label="Investigation queue">
+    <div class="panel">
+      <div class="row-between" style="margin-bottom:8px">
+        <div>
+          <span class="mtn-speech-pill" style="margin-bottom:6px">Step 4 · Daily Analyst Workbench</span>
+          <h2 style="margin-bottom:4px">Investigation Queue &amp; Revenue Assurance Telemetry</h2>
+          <small id="freshness"></small>
+        </div>
+        <label style="min-width:240px">
+          Active Reviewer Name (saved with case decisions)
+          <input id="reviewer" maxlength="120" placeholder="e.g., Thabo Mbeki (RA Analyst)">
+        </label>
+      </div>
+
+      <!-- 4 Executive Financial KPI Cards -->
+      <div class="metrics" id="metrics"></div>
+
+      <!-- Excluded Pending / Missing Evidence Banner -->
+      <div class="excluded-strip">
+        <span id="pending-summary"></span>
+        <span id="accuracy-note" class="subtle" hidden>Uploaded dataset: no ground-truth labels present. Risk scores are prioritization ranks, not calibrated probabilities.</span>
+      </div>
+
+      <!-- Sub-Navigation Tabs inside Workspace -->
+      <div class="workspace-tabs" role="tablist" aria-label="Workspace views">
+        <button type="button" class="tab-btn active" id="tab-btn-queue" data-tab="queue">📋 Investigation Queue</button>
+        <button type="button" class="tab-btn" id="tab-btn-hotspots" data-tab="hotspots">📡 RAN Cell-ID Hotspots</button>
+        <button type="button" class="tab-btn" id="tab-btn-benchmark" data-tab="benchmark">📈 Benchmark &amp; Archetype Guide</button>
+      </div>
+
+      <!-- ==================================================================
+           TAB 1: Investigation Queue & Filters
+           ================================================================== -->
+      <div id="tab-panel-queue">
+        <!-- Quick Status Filter Chips -->
+        <div class="status-pills" aria-label="Quick status filter">
+          <button type="button" class="status-pill-btn active" data-status="ALL">All Statuses</button>
+          <button type="button" class="status-pill-btn" data-status="NEW">New</button>
+          <button type="button" class="status-pill-btn" data-status="INVESTIGATING">Investigating</button>
+          <button type="button" class="status-pill-btn" data-status="CONFIRMED">Confirmed Leakage</button>
+          <button type="button" class="status-pill-btn" data-status="DISMISSED">Dismissed Benign</button>
+          <button type="button" class="status-pill-btn" data-status="RESOLVED">Resolved</button>
+        </div>
+
+        <form id="filters" class="panel-sub" style="margin-top:0;margin-bottom:18px">
+          <div class="row">
+            <label class="grow">
+              Search SIM, MSISDN, account, owner or cell ID
+              <input id="search" placeholder="e.g., SIM-0001, JHB-HILLBROW-004, CORP-MASTER">
+            </label>
+            <label>
+              Case Status
+              <select id="status">
+                <option value="ALL">All statuses</option>
+                <option value="NEW">NEW</option>
+                <option value="INVESTIGATING">INVESTIGATING</option>
+                <option value="CONFIRMED">CONFIRMED</option>
+                <option value="DISMISSED">DISMISSED</option>
+                <option value="RESOLVED">RESOLVED</option>
+              </select>
+            </label>
+            <label>
+              Assigned Owner
+              <select id="owner">
+                <option value="ALL">All owners</option>
+                <option value="UNASSIGNED">Unassigned</option>
+              </select>
+            </label>
+            <label>
+              Root-Cause Hypothesis
+              <select id="archetype">
+                <option value="ALL">All hypotheses</option>
+              </select>
+            </label>
+            <label>
+              Tariff Plan
+              <select id="plan">
+                <option value="ALL">All plans</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="row toolbar">
+            <label>
+              Population View
+              <select id="view">
+                <option value="review">Needs review / already saved</option>
+                <option value="all">All evaluated SIMs</option>
+              </select>
+            </label>
+            <label>
+              Sort By
+              <select id="sort">
+                <option value="priority_score">Priority (Opportunity × Risk)</option>
+                <option value="unbilled_retail_zar">Estimated opportunity (ZAR)</option>
+                <option value="risk_score">Risk score (/ 100)</option>
+                <option value="sim_id">SIM ID</option>
+                <option value="case_updated_at">Last case update</option>
+              </select>
+            </label>
+            <label>
+              Order
+              <select id="order">
+                <option value="desc">Highest first (Desc)</option>
+                <option value="asc">Lowest first (Asc)</option>
+              </select>
+            </label>
+            <label>
+              Queue Limit
+              <select id="top_k">
+                <option>25</option>
+                <option selected>100</option>
+                <option>250</option>
+                <option>1000</option>
+              </select>
+            </label>
+            <button class="primary" type="submit">Apply Filters</button>
+            <button id="reset-filters" type="button">Reset</button>
+            <a class="button" id="export">⬇ Export Visible CSV</a>
+          </div>
+        </form>
+
+        <div class="row-between" style="margin-bottom:10px">
+          <p id="queue-count" style="margin:0;font-weight:700"></p>
+          <span id="selection-count" class="badge badge-NEW">0 selected</span>
         </div>
 
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Rank</th>
-                <th>SIM ID</th>
-                <th>MSISDN</th>
-                <th>Plan</th>
-                <th>HLR / Billing Status</th>
-                <th>Root-Cause Hypothesis</th>
-                <th>Unbilled Retail (ZAR)</th>
-                <th>Marginal Cost (ZAR)</th>
-                <th>Est. Recoverable (ZAR)</th>
-                <th>Confidence</th>
-                <th>Primary Cell ID</th>
-                <th>Top Anomaly Driver</th>
+                <th style="width:42px"><input id="select-all" type="checkbox" aria-label="Select all visible cases"></th>
+                <th>SIM / Root-Cause Hypothesis</th>
+                <th>Estimated Opportunity</th>
+                <th>Risk / 100</th>
                 <th>Status</th>
+                <th>Assigned Owner &amp; Action</th>
               </tr>
             </thead>
-            <tbody id="queue-tbody"></tbody>
+            <tbody id="queue"></tbody>
           </table>
         </div>
-      </div>
+        <p id="empty" class="empty" hidden>No SIM cases match the current filters. Try switching Population View to "All evaluated SIMs" or clicking Reset.</p>
 
-      <div class="grid-2">
-        <div class="panel-card">
-          <h3 class="panel-title" style="margin-bottom:0.9rem;">Value at Risk by Root-Cause Archetype (Top-100 Queue)</h3>
-          <div id="rc-bars"></div>
-        </div>
-        <div class="panel-card">
-          <h3 class="panel-title" style="margin-bottom:0.6rem;">Auto-Suppressed Benign "R0 Direct Revenue" Look-Alikes</h3>
-          <p style="font-size:0.83rem; color:var(--text-muted); margin-top:0;">
-            Before anomaly scoring, Layer 1 SQL Reconciliation cross-checks multi-month bundle entitlements, corporate parent accounts, and whitelisted zero-rated APNs—eliminating <b>300 false-positive alerts</b> automatically:
-          </p>
-          <div class="bar-row">
-            <div class="bar-label"><span><b>Legitimate 90-Day / Rollover Bundle Covered</b> (Prepaid Wallet Entitlement)</span><span>120 SIMs Suppressed (0 False Positives)</span></div>
-            <div class="bar-track"><div class="bar-fill" style="width:100%; background:var(--cyan);"></div></div>
-          </div>
-          <div class="bar-row">
-            <div class="bar-label"><span><b>Legitimate Enterprise Pooled Child SIMs</b> (Billed to Master Account CORP-MASTER-*)</span><span>100 SIMs Suppressed (0 False Positives)</span></div>
-            <div class="bar-track"><div class="bar-fill" style="width:83%; background:var(--emerald);"></div></div>
-          </div>
-          <div class="bar-row">
-            <div class="bar-label"><span><b>Legitimate Public Zero-Rated APN</b> (mtn.zero.edu within 8GB Fair-Use Cap)</span><span>80 SIMs Suppressed (0 False Positives)</span></div>
-            <div class="bar-track"><div class="bar-fill" style="width:67%; background:var(--violet);"></div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2: SINGLE-SIM FORENSIC DRILL-DOWN -->
-    <div id="tab-drill" class="tab-panel">
-      <div class="panel-card">
-        <div class="panel-header">
-          <div>
-            <h3 class="panel-title" id="drill-title">🔍 Single-SIM Automated Forensic Evidence Pack</h3>
-            <span style="font-size:0.82rem; color:var(--text-muted);" id="drill-sub">Select any SIM from the dropdown or click a row in Tab 1</span>
-          </div>
-          <div class="controls-row">
-            <select id="sim-selector" onchange="loadSimDetail(this.value)"></select>
-            <button class="btn btn-emerald" onclick="actionCurrentSim('TICKETED_TO_SME')">✅ Approve &amp; Dispatch Remedy Ticket</button>
-            <button class="btn btn-secondary" onclick="actionCurrentSim('WHITELISTED')">🚫 Whitelist as Benign</button>
-          </div>
-        </div>
-
-        <div class="evidence-banner" id="drill-banner"></div>
-
-        <h4 style="margin:0.5rem 0; font-size:0.9rem; color:var(--text-muted);">5-POINT AUTOMATED OSS/BSS DIAGNOSTIC CHECKLIST</h4>
-        <div class="check-grid" id="drill-checks"></div>
-
-        <div class="grid-2" style="margin-top:1.2rem;">
-          <div class="panel-card" style="margin-bottom:0;">
-            <h4 class="panel-title" style="margin-bottom:0.8rem;">Layer 2 Isolation Forest Feature Attribution (% Driver Share)</h4>
-            <div id="drill-shap"></div>
-          </div>
-          <div class="panel-card" style="margin-bottom:0;">
-            <h4 class="panel-title" style="margin-bottom:0.8rem;">30-Day Daily Network Usage vs. OCS Billed Amount (Last 14 Days Shown)</h4>
-            <div class="table-wrap" style="max-height:270px;">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Usage Date</th>
-                    <th>Data (MB)</th>
-                    <th>Voice (Mins)</th>
-                    <th>Night Ratio</th>
-                    <th>Retail Value (ZAR)</th>
-                    <th>OCS Rated (ZAR)</th>
-                  </tr>
-                </thead>
-                <tbody id="drill-daily-tbody"></tbody>
-              </table>
+        <!-- Batch Update Drawer -->
+        <details style="margin-top:18px">
+          <summary>⚡ Batch Update Selected Cases (up to 100 SIMs at once)</summary>
+          <form id="batch-form" style="margin-top:14px">
+            <div class="row">
+              <label>
+                Target Status
+                <select id="batch-status">
+                  <option value="INVESTIGATING">Start / reopen investigation (INVESTIGATING)</option>
+                  <option value="CONFIRMED">Confirm leakage (CONFIRMED)</option>
+                  <option value="DISMISSED">Dismiss as benign look-alike (DISMISSED)</option>
+                  <option value="RESOLVED">Mark resolved (RESOLVED)</option>
+                </select>
+              </label>
+              <label class="grow">
+                Assign Owner Team / Analyst
+                <input id="batch-owner" maxlength="120" placeholder="Leave blank to keep each SIM's current owner">
+              </label>
             </div>
-          </div>
-        </div>
+            <label style="margin-top:12px">
+              Batch Investigation Note / Evidence
+              <textarea id="batch-note" maxlength="4000" rows="2" placeholder="Explain why these selected cases are being updated together…"></textarea>
+            </label>
+            <div id="batch-dismiss" class="row" style="margin-top:12px" hidden>
+              <label class="grow">
+                Reason for Benign Dismissal
+                <input id="batch-reason" maxlength="2000" placeholder="e.g., Verified corporate master invoice pool coverage">
+              </label>
+              <label>
+                Whitelist Expiry (00:00 UTC)
+                <input id="batch-expiry" type="date">
+              </label>
+            </div>
+            <p class="subtle">All selected cases save atomically in SQLite. Record verified ZAR outcomes individually in the case inspector.</p>
+            <button class="primary" type="submit">Save Selected Cases</button>
+          </form>
+        </details>
       </div>
-    </div>
 
-    <!-- TAB 3: RAN / CELL-ID CLUSTERING -->
-    <div id="tab-ran" class="tab-panel">
-      <div class="panel-card">
-        <div class="panel-header">
-          <div>
-            <h3 class="panel-title">🗺️ RAN Spatial Clustering: Unbilled Traffic &amp; SIM Box Hotspots by Cell ID</h3>
-            <span style="font-size:0.82rem; color:var(--text-muted);">
-              Bridges OSS/BSS Revenue Assurance with <b>RAN Analytics</b>: clustering zero-revenue high-usage SIMs by Cell ID isolates <b>SIM Box interconnect bypass banks</b> (e.g. Hillbrow &amp; Soweto) and regional provisioning faults.
-            </span>
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div>
-            <h4 style="margin-top:0;">Cell Sites Ranked by Unbilled Retail Leakage (ZAR)</h4>
-            <div id="cell-bars"></div>
-          </div>
+      <!-- ==================================================================
+           TAB 2: RAN Cell-ID Hotspots
+           ================================================================== -->
+      <div id="tab-panel-hotspots" hidden>
+        <div class="panel-sub" style="margin-top:0">
+          <h3>RAN Spatial Clustering · Unbilled Usage by Primary Cell ID</h3>
+          <p class="subtle">
+            High concentrations of zero-revenue active SIMs on a single cell tower often point to a <strong>SIM Box interconnect bypass bank</strong> or a <strong>regional provisioning batch failure</strong>. Click any cell below to filter the investigation queue to that tower.
+          </p>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Cell ID</th>
-                  <th>Province</th>
-                  <th>Area Profile</th>
-                  <th>Total SIMs</th>
-                  <th>Ghost SIMs</th>
-                  <th>SIM Box SIMs</th>
-                  <th>Ghost Density</th>
-                  <th>Unbilled Retail (ZAR)</th>
-                  <th>Est. Recoverable (ZAR)</th>
+                  <th>Primary Cell ID</th>
+                  <th>Flagged / Total SIMs</th>
+                  <th>Mature Estimated Opportunity</th>
+                  <th>Awaiting Billing (Grace)</th>
+                  <th>Avg Risk / 100</th>
+                  <th>Dominant Root-Cause Hypothesis</th>
+                  <th>Action</th>
                 </tr>
               </thead>
-              <tbody id="cell-tbody"></tbody>
+              <tbody id="hotspots-body"></tbody>
             </table>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- TAB 4: BACKTEST & DEFENSIBLE BUSINESS CASE -->
-    <div id="tab-backtest" class="tab-panel">
-      <div class="grid-2">
-        <div class="panel-card">
-          <h3 class="panel-title">📈 Backtest Scorecard: Ghost SIM Hunter vs. Naive "R0 Revenue" Report</h3>
-          <p style="font-size:0.84rem; color:var(--text-muted);">
-            Evaluated on <b>3,000 SIMs (90,000 daily CDR records)</b> containing <b>180 injected leakage SIMs</b> across 5 archetypes and <b>300 benign R0-direct-revenue look-alikes</b> (negative controls).
-          </p>
+      <!-- ==================================================================
+           TAB 3: Synthetic Benchmark & Archetype Playbook
+           ================================================================== -->
+      <div id="tab-panel-benchmark" hidden>
+        <details id="benchmark-section" open>
+          <summary>Synthetic Benchmark Results (Controlled Ground-Truth Evaluation)</summary>
+          <p id="benchmark" style="font-weight:600;margin-top:10px"></p>
+          <div id="benchmark-cards" class="quality-kpis"></div>
+        </details>
+
+        <div class="panel-sub">
+          <h3>5 Revenue Leakage Archetypes &amp; Reconciliation Rules</h3>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Evaluation Metric (at Queue Depth K=100)</th>
-                  <th>Ghost SIM Hunter (3-Layer)</th>
-                  <th>Naive R0 Threshold Report</th>
-                  <th>Improvement</th>
+                  <th>Archetype</th>
+                  <th>Detection Signature</th>
+                  <th>Recommended Human-in-the-Loop Action</th>
+                  <th>Default Owner Team</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td><b>Precision@100</b> (% of Top-100 that are true leakage)</td>
-                  <td style="color:var(--emerald); font-weight:700;">100.0% (100 / 100)</td>
-                  <td style="color:var(--rose);">23.0% (23 / 100)</td>
-                  <td><b>+77.0 pts (4.3× higher precision)</b></td>
+                  <td><strong>HLR/OCS Desync Orphan</strong><br><small><code>PROVISIONING_ORPHAN</code></small></td>
+                  <td><code>hlr_status = ACTIVE</code> while billing status is <code>MISSING_IN_OCS</code>, <code>PENDING</code>, or <code>SUSPENDED_BILLING_ONLY</code>.</td>
+                  <td>Sync IMSI/MSISDN to Billing CRM or suspend HLR profile pending contract linkage.</td>
+                  <td>Core Provisioning &amp; Revenue Assurance</td>
                 </tr>
                 <tr>
-                  <td><b>Benign Look-Alike False Positives in Top 100</b></td>
-                  <td style="color:var(--emerald); font-weight:700;">0 SIMs (0.0% FPR)</td>
-                  <td style="color:var(--rose);">77 SIMs (77.0% FPR)</td>
-                  <td><b>100% False-Positive Elimination</b></td>
+                  <td><strong>Tariff / APN Rating Bug</strong><br><small><code>RATING_MISCONFIG</code></small></td>
+                  <td>Active sessions rated at R0.00 on legacy/promo tariff codes or unrated paid APNs.</td>
+                  <td>Patch OCS rating table mapping and trigger 30-day CDR re-rating.</td>
+                  <td>Billing Configuration &amp; Rating Team</td>
                 </tr>
                 <tr>
-                  <td><b>Recall@100</b> (% of all 180 Ghost SIMs captured in Top 100)</td>
-                  <td style="color:var(--emerald); font-weight:700;">55.6%</td>
-                  <td>12.8%</td>
-                  <td><b>+42.8 pts</b></td>
+                  <td><strong>IoT SIM on Consumer APN</strong><br><small><code>IOT_WRONG_APN</code></small></td>
+                  <td><code>IOT_M2M</code> plan transmitting broadband volume on consumer <code>internet</code> APN instead of <code>mtn.iot.m2m</code>.</td>
+                  <td>Lock IMEI/APN binding to dedicated M2M APN and invoice enterprise overage.</td>
+                  <td>Enterprise IoT Operations</td>
                 </tr>
                 <tr>
-                  <td><b>Share of Total Leakage Value Captured in Top 100</b></td>
-                  <td style="color:var(--mtn-yellow); font-weight:700;">68.0% of Total Value</td>
-                  <td>21.1% of Total Value</td>
-                  <td><b>+46.9 pts value concentration</b></td>
+                  <td><strong>Internal / Test SIM Abuse</strong><br><small><code>FREE_INTERNAL_ABUSE</code></small></td>
+                  <td><code>INTERNAL_TEST</code> SIM pinned to residential cells with heavy night/off-peak streaming.</td>
+                  <td>Revoke unlimited test entitlement, apply fair-usage cap, and audit custodian department.</td>
+                  <td>Internal Audit &amp; Service Operations</td>
+                </tr>
+                <tr>
+                  <td><strong>SIM Box Interconnect Bypass</strong><br><small><code>SIM_BOX_FRAUD</code></small></td>
+                  <td>Extreme voice minutes, high distinct callees, rapid IMEI rotation, clustered in specific Cell IDs.</td>
+                  <td>Escalate to Fraud Management System (FMS); quarantine SIM batch at Cell ID and block IMEI pool.</td>
+                  <td>Fraud Management &amp; RAN Security</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
-
-        <div class="panel-card">
-          <h3 class="panel-title">💰 Transparent 3-Tier Financial Valuation (Addressing Judge Scrutiny)</h3>
-          <p style="font-size:0.84rem; color:var(--text-muted);">
-            Usage valued at retail tariff is not identical to cash recoverable. We separate <b>Retail Tariff Equivalent</b>, <b>Direct Marginal Network Cost</b>, and <b>Realistic Recoverable Cash</b>:
-          </p>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Financial Valuation Tier</th>
-                  <th>Top-100 Queue (Monthly)</th>
-                  <th>Top-100 Queue (Annual)</th>
-                  <th>All 180 Ghost SIMs (Annual)</th>
-                </tr>
-              </thead>
-              <tbody id="fin-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel-card">
-        <h3 class="panel-title" style="margin-bottom:0.8rem;">Ground-Truth Archetype Capture Breakdown (All 8 Subscriber Classes)</h3>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Ground-Truth Class Label</th>
-                <th>Total Population SIMs</th>
-                <th>Captured in Hunter Top-100</th>
-                <th>Captured in Naive Top-100</th>
-                <th>Gross Retail Usage (ZAR/mo)</th>
-                <th>Uncovered Leakage Value (ZAR/mo)</th>
-                <th>Est. Recoverable Cash (ZAR/mo)</th>
-              </tr>
-            </thead>
-            <tbody id="arch-tbody"></tbody>
-          </table>
-        </div>
       </div>
     </div>
+  </section>
+</main>
 
-    <!-- TAB 5: ARCHITECTURE & DATA CONTRACT -->
-    <div id="tab-arch" class="tab-panel">
-      <div class="panel-card">
-        <h3 class="panel-title">🔌 Production Data Contract &amp; POPIA-Safe Ingestion Architecture</h3>
-        <p style="font-size:0.86rem; color:var(--text-muted);">
-          Designed for zero-disruption deployment inside MTN's environment. Identifiers (<code>IMSI</code>, <code>MSISDN</code>, <code>Account_ID</code>) are salted-SHA256 pseudonymised before batch ingestion.
-        </p>
-        <div class="grid-2">
-          <div class="check-box">
-            <h4>Layer 1: Multi-System SQL Reconciliation</h4>
-            <div class="val">HLR/HSS + OCS Rated CDRs + Billing CRM + Entitlements</div>
-            <div class="sub">Excludes Rollover Bundles, Corporate Parent Pools &amp; Whitelisted Zero-Rated APNs before scoring.</div>
-          </div>
-          <div class="check-box">
-            <h4>Layer 2: Unsupervised Isolation Forest + Attribution</h4>
-            <div class="val">100-Tree Isolation Forest on 8 Behavioural &amp; Spatial Features</div>
-            <div class="sub">Outputs standardized per-feature attribution percentages so analysts see *why* each SIM is anomalous.</div>
-          </div>
-        </div>
-      </div>
+<!-- ========================================================================
+     Slide-Over Single-SIM Forensic Case Inspector (<dialog>)
+     ======================================================================== -->
+<dialog id="inspector" aria-labelledby="case-title">
+  <div class="inspector-top">
+    <div>
+      <span class="mtn-speech-pill" style="background:var(--mtn-yellow);color:#121212;margin-bottom:6px">5-Point Forensic Case Inspector</span>
+      <h2 id="case-title">Case inspector</h2>
+      <p id="case-subtitle"></p>
     </div>
+    <button id="close-inspector" type="button" aria-label="Close inspector" style="background:#262626;color:#ffffff;border-color:#444">✕ Close</button>
   </div>
 
-  <script>
-    let globalData = null;
-    let currentSimId = null;
+  <div class="inspector-body">
+    <p id="case-feedback" role="status" aria-live="polite" class="notice"></p>
 
-    function fmtZAR(val) {
-      return "R " + Number(val || 0).toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    function fmtZARShort(val) {
-      return "R " + Math.round(Number(val || 0)).toLocaleString("en-ZA");
-    }
+    <!-- Forensic Summary & Recommended Action -->
+    <div class="evidence-box">
+      <h3 style="margin-bottom:6px">Automated Forensic Evidence Summary</h3>
+      <p id="evidence" style="margin:0"></p>
+      <p id="recommendation" class="recommendation-box"></p>
+    </div>
 
-    function switchTab(tabId, btnEl) {
-      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      document.getElementById(tabId).classList.add("active");
-      if (btnEl) btnEl.classList.add("active");
-    }
+    <!-- Visual Coverage & Reconciliation Breakdown -->
+    <div class="coverage-bar-wrap">
+      <div class="row-between">
+        <h3 style="margin:0">Reconciliation &amp; Entitlement Coverage Breakdown</h3>
+        <small>Record-level ledger-v2</small>
+      </div>
+      <div id="coverage-visual-bar" class="stacked-bar" title="Green: Covered | Amber: Awaiting/Missing Billing | Red: Mature Unbilled Opportunity"></div>
+      <dl id="coverage"></dl>
+    </div>
 
-    function getArchetypeTag(code, name) {
-      let cls = "tag-orphan";
-      if (code === "SIM_BOX_FRAUD") cls = "tag-fraud";
-      else if (code === "IOT_WRONG_APN") cls = "tag-iot";
-      else if (code === "FREE_INTERNAL_ABUSE") cls = "tag-internal";
-      return `<span class="tag ${cls}">${name}</span>`;
-    }
+    <!-- Expandable Record-Level Daily Ledger -->
+    <details>
+      <summary>📅 Daily Usage &amp; Coverage Ledger (ZAR per usage record)</summary>
+      <p class="subtle">Chronological day-by-day reconciliation across APNs, bundles, invoices, parent pools, and billing grace windows.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date / APN</th>
+              <th>Reference</th>
+              <th>Zero-rated</th>
+              <th>Bundle</th>
+              <th>Rated</th>
+              <th>Invoice</th>
+              <th>Parent</th>
+              <th>Mature residual</th>
+              <th>Awaiting billing</th>
+              <th>Missing evidence</th>
+            </tr>
+          </thead>
+          <tbody id="ledger"></tbody>
+        </table>
+      </div>
+    </details>
 
-    async function loadSummary() {
-      const arch = document.getElementById("filter-archetype").value;
-      const plan = document.getElementById("filter-plan").value;
-      const res = await fetch(`/api/summary?top_k=100&archetype=${arch}&plan=${plan}`);
-      globalData = await res.json();
+    <!-- Standardized Deviation Indicators -->
+    <details open>
+      <summary>📊 Peer Deviation Indicators (Why this SIM stands out)</summary>
+      <p class="subtle">Share of positive standardized deviation (z-score above dataset mean). Note: These are statistical peer deviation indicators, not SHAP values.</p>
+      <ul id="indicators"></ul>
+    </details>
 
-      const bt = globalData.backtest;
-      const fin = bt.financials;
+    <!-- Durable Internal Case Decision Form -->
+    <form id="case-form" class="panel" style="margin-top:18px;padding:20px">
+      <div class="row-between" style="margin-bottom:8px">
+        <h3 style="margin:0">Record Internal Case Decision</h3>
+        <small id="case-meta"></small>
+      </div>
 
-      document.getElementById("kpi-prec").textContent = (bt.hunter_precision_k * 100).toFixed(1) + "%";
-      document.getElementById("kpi-fpr").textContent = (bt.hunter_benign_fpr_k * 100).toFixed(1) + "%";
-      document.getElementById("kpi-retail").textContent = fmtZARShort(fin.top_k_retail_zar) + " /mo";
-      document.getElementById("kpi-rec").textContent = fmtZARShort(fin.top_k_rec_mid_zar) + " /mo";
-      document.getElementById("kpi-actioned").textContent = fmtZARShort(globalData.actioned_zar) + " /mo";
-      document.getElementById("kpi-actioned-cnt").textContent = `${globalData.actioned_count} SIMs Ticketed to SMEs`;
+      <div class="row">
+        <label class="grow">
+          Reviewer Name (required)
+          <input id="case-reviewer" maxlength="120" required placeholder="Your name">
+        </label>
+        <label class="grow">
+          Assigned Owner Team / Analyst
+          <input id="case-owner" maxlength="120">
+        </label>
+        <label>
+          Workflow Status
+          <select id="case-status"></select>
+        </label>
+      </div>
 
-      // Populate Queue Table
-      const tbody = document.getElementById("queue-tbody");
-      tbody.innerHTML = "";
-      const sel = document.getElementById("sim-selector");
-      sel.innerHTML = "";
+      <label style="margin-top:12px">
+        Investigation Note / Supporting Evidence
+        <textarea id="case-note" rows="3" maxlength="4000" placeholder="Document findings, CRM/OCS checks, or billing period verified…"></textarea>
+      </label>
 
-      globalData.queue.forEach((r, idx) => {
-        const statusCls = r.case_status === "TICKETED_TO_SME" ? "tag-ticketed" : "tag-open";
-        const tr = document.createElement("tr");
-        tr.onclick = () => {
-          loadSimDetail(r.sim_id);
-          switchTab("tab-drill", document.querySelectorAll(".tab-btn")[1]);
-        };
-        tr.innerHTML = `
-          <td><b>#${r.hunter_rank}</b></td>
-          <td style="color:var(--mtn-yellow); font-weight:700;">${r.sim_id}</td>
-          <td>${r.msisdn}</td>
-          <td>${r.plan_type}</td>
-          <td>${r.hlr_status} / <span style="color:${r.billing_status !== 'ACTIVE' ? '#fda4af' : '#cbd5e1'}">${r.billing_status}</span></td>
-          <td>${getArchetypeTag(r.predicted_archetype_code, r.predicted_archetype_name)}</td>
-          <td style="font-weight:700;">${fmtZAR(r.unbilled_retail_zar)}</td>
-          <td>${fmtZAR(r.marginal_network_cost_zar)}</td>
-          <td style="color:var(--emerald); font-weight:700;">${fmtZAR(r.est_recoverable_mid_zar)}</td>
-          <td>${(r.confidence_score * 100).toFixed(1)}%</td>
-          <td>${r.primary_cell_id}</td>
-          <td style="font-size:0.78rem; color:var(--text-muted);">${r.shap_driver_1}</td>
-          <td><span class="tag ${statusCls}">${r.case_status}</span></td>
-        `;
-        tbody.appendChild(tr);
+      <div id="dismissal-fields" class="panel-sub" hidden>
+        <label>
+          Reason for Benign Dismissal (required for DISMISSED)
+          <textarea id="case-reason" maxlength="2000" rows="2" placeholder="Explain why this R0 SIM is legitimate (e.g., active corporate pool or rollover bundle)…"></textarea>
+        </label>
+        <label style="margin-top:10px">
+          Whitelist Expiry Date (00:00 UTC — case automatically reopens after expiry)
+          <input id="case-expiry" type="date">
+        </label>
+      </div>
 
-        const opt = document.createElement("option");
-        opt.value = r.sim_id;
-        opt.textContent = `#${r.hunter_rank} | ${r.sim_id} (${r.msisdn}) — ${r.predicted_archetype_name} [${fmtZARShort(r.unbilled_retail_zar)}]`;
-        sel.appendChild(opt);
-      });
-
-      // Root-cause bars
-      const rcDiv = document.getElementById("rc-bars");
-      rcDiv.innerHTML = "";
-      const maxRc = Math.max(1, ...globalData.rc_breakdown.map(x => x.unbilled_retail_zar));
-      globalData.rc_breakdown.sort((a,b) => b.unbilled_retail_zar - a.unbilled_retail_zar).forEach(rc => {
-        const pct = Math.round((rc.unbilled_retail_zar / maxRc) * 100);
-        rcDiv.innerHTML += `
-          <div class="bar-row">
-            <div class="bar-label">
-              <span><b>${rc.name}</b> (${rc.count} SIMs)</span>
-              <span>Retail: <b>${fmtZARShort(rc.unbilled_retail_zar)}</b> | Recoverable: <b style="color:var(--emerald)">${fmtZARShort(rc.est_recoverable_mid_zar)}</b></span>
-            </div>
-            <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:var(--mtn-yellow);"></div></div>
-          </div>
-        `;
-      });
-
-      // RAN Cells Table & Bars
-      const cellBars = document.getElementById("cell-bars");
-      const cellTbody = document.getElementById("cell-tbody");
-      cellBars.innerHTML = "";
-      cellTbody.innerHTML = "";
-      const maxCell = Math.max(1, ...globalData.cells.map(c => c.unbilled_retail_zar));
-      globalData.cells.forEach(c => {
-        const pct = Math.round((c.unbilled_retail_zar / maxCell) * 100);
-        const barColor = c.simbox_sims > 0 ? "var(--rose)" : "var(--amber)";
-        cellBars.innerHTML += `
-          <div class="bar-row">
-            <div class="bar-label">
-              <span><b>${c.cell_id}</b> (${c.area_type}) ${c.simbox_sims > 0 ? '🚨 SIM Box Cluster' : ''}</span>
-              <span>${fmtZARShort(c.unbilled_retail_zar)} (${c.ghost_sims} Ghost SIMs)</span>
-            </div>
-            <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${barColor};"></div></div>
-          </div>
-        `;
-        cellTbody.innerHTML += `
-          <tr>
-            <td><b>${c.cell_id}</b></td>
-            <td>${c.province}</td>
-            <td>${c.area_type}</td>
-            <td>${c.total_sims}</td>
-            <td style="font-weight:700; color:var(--amber);">${c.ghost_sims}</td>
-            <td style="font-weight:700; color:${c.simbox_sims > 0 ? 'var(--rose)' : 'var(--text-muted)'};">${c.simbox_sims}</td>
-            <td>${c.ghost_density_pct}%</td>
-            <td>${fmtZAR(c.unbilled_retail_zar)}</td>
-            <td style="color:var(--emerald); font-weight:700;">${fmtZAR(c.est_recoverable_mid_zar)}</td>
-          </tr>
-        `;
-      });
-
-      // Financial Table
-      const finTbody = document.getElementById("fin-tbody");
-      finTbody.innerHTML = `
-        <tr>
-          <td><b>1. Unbilled Usage at Retail Tariff</b> (R0.29/MB, R1.20/min)</td>
-          <td>${fmtZAR(fin.top_k_retail_zar)}</td>
-          <td>${fmtZAR(fin.top_k_retail_zar * 12)}</td>
-          <td>${fmtZAR(fin.all_retail_zar * 12)}</td>
-        </tr>
-        <tr>
-          <td><b>2. Direct Marginal Network &amp; Interconnect Cost</b> (~18% + R0.13/min ICASA)</td>
-          <td>${fmtZAR(fin.top_k_marginal_cost_zar)}</td>
-          <td>${fmtZAR(fin.top_k_marginal_cost_zar * 12)}</td>
-          <td>${fmtZAR(fin.all_marginal_cost_zar * 12)}</td>
-        </tr>
-        <tr>
-          <td><b>3a. Est. Cash Recoverable — Conservative</b> (Low Bound)</td>
-          <td>${fmtZAR(fin.top_k_rec_low_zar)}</td>
-          <td>${fmtZAR(fin.top_k_rec_low_zar * 12)}</td>
-          <td>${fmtZAR(fin.all_rec_low_zar * 12)}</td>
-        </tr>
-        <tr>
-          <td style="color:var(--emerald);"><b>3b. Est. Cash Recoverable — Base Case</b> (Archetype Weighted)</td>
-          <td style="color:var(--emerald); font-weight:700;">${fmtZAR(fin.top_k_rec_mid_zar)}</td>
-          <td style="color:var(--emerald); font-weight:700;">${fmtZAR(fin.top_k_rec_mid_zar * 12)}</td>
-          <td style="color:var(--emerald); font-weight:700;">${fmtZAR(fin.all_rec_mid_zar * 12)}</td>
-        </tr>
-        <tr>
-          <td><b>3c. Est. Cash Recoverable — Optimistic</b> (High Bound)</td>
-          <td>${fmtZAR(fin.top_k_rec_high_zar)}</td>
-          <td>${fmtZAR(fin.top_k_rec_high_zar * 12)}</td>
-          <td>${fmtZAR(fin.all_rec_high_zar * 12)}</td>
-        </tr>
-      `;
-
-      // Archetype Summary Table
-      const archTbody = document.getElementById("arch-tbody");
-      archTbody.innerHTML = "";
-      bt.archetype_summary.forEach(a => {
-        archTbody.innerHTML += `
-          <tr>
-            <td><b>${a.ground_truth_label}</b></td>
-            <td>${a.total_sims}</td>
-            <td style="color:var(--emerald); font-weight:700;">${a.in_hunter_top_k}</td>
-            <td style="color:${a.ground_truth_label.startsWith('BENIGN') && a.in_naive_top_k > 0 ? 'var(--rose)' : '#fff'};">${a.in_naive_top_k}</td>
-            <td>${fmtZAR(a.total_retail_zar)}</td>
-            <td>${fmtZAR(a.unbilled_retail_zar)}</td>
-            <td style="color:var(--emerald); font-weight:700;">${fmtZAR(a.est_recoverable_mid_zar)}</td>
-          </tr>
-        `;
-      });
-
-      if (!currentSimId && globalData.queue.length > 0) {
-        loadSimDetail(globalData.queue[0].sim_id);
-      }
-    }
-
-    async function loadSimDetail(simId) {
-      currentSimId = simId;
-      document.getElementById("sim-selector").value = simId;
-      const res = await fetch(`/api/sim/${simId}`);
-      const data = await res.json();
-      const s = data.sim;
-
-      document.getElementById("drill-title").textContent = `🔍 SIM Forensic Inspector: ${s.sim_id} (${s.msisdn}) — Rank #${s.hunter_rank}`;
-      document.getElementById("drill-sub").textContent = `IMSI: ${s.imsi} | Account: ${s.account_id} | Activated: ${s.activation_date} | Channel: ${s.channel} | Ground Truth: ${s.ground_truth_label}`;
-
-      document.getElementById("drill-banner").innerHTML = `
-        <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
-          <div>
-            <div style="font-size:1.05rem; font-weight:700; color:var(--mtn-yellow);">Root-Cause Hypothesis: ${s.predicted_archetype_name}</div>
-            <div style="margin:0.35rem 0; font-size:0.9rem;"><b>Automated Evidence Summary:</b> ${s.investigation_summary}</div>
-            <div style="font-size:0.9rem; color:#6ee7b7;"><b>Recommended Action (${s.owner_team}):</b> ${s.recommended_action}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:0.78rem; color:var(--text-muted);">ESTIMATED RECOVERABLE CASH</div>
-            <div style="font-size:1.45rem; font-weight:800; color:var(--emerald);">${fmtZAR(s.est_recoverable_mid_zar)} /mo</div>
-            <div style="font-size:0.78rem; color:var(--text-muted);">Unbilled Retail: ${fmtZAR(s.unbilled_retail_zar)} | Status: <b>${s.case_status}</b></div>
-          </div>
+      <details style="margin-top:14px;background:var(--panel-alt)">
+        <summary>💰 Record Verified Financial Outcomes (ZAR)</summary>
+        <p class="subtle">
+          Leave blank if unmeasured. <strong>Confirmed leakage</strong> requires <code>CONFIRMED</code> or <code>RESOLVED</code> status; <strong>Cash recovered</strong> and <strong>Cost avoided</strong> require <code>RESOLVED</code> status.
+        </p>
+        <div class="outcomes">
+          <label>
+            Confirmed Leakage (ZAR)
+            <input id="confirmed_leakage_zar" type="number" min="0" max="1000000000000" step="0.01" placeholder="0.00">
+          </label>
+          <label>
+            Cash Recovered (ZAR)
+            <input id="cash_recovered_zar" type="number" min="0" max="1000000000000" step="0.01" placeholder="0.00">
+          </label>
+          <label>
+            Cost Avoided (ZAR)
+            <input id="cost_avoided_zar" type="number" min="0" max="1000000000000" step="0.01" placeholder="0.00">
+          </label>
         </div>
-      `;
+      </details>
 
-      document.getElementById("drill-checks").innerHTML = `
-        <div class="check-box ${s.rule_hlr_ocs_orphan ? 'alert' : ''}">
-          <h4>1. HLR vs Billing Status</h4>
-          <div class="val">${s.hlr_status} / ${s.billing_status}</div>
-          <div class="sub">${s.rule_hlr_ocs_orphan ? '⚠️ HLR-OCS DESYNC ORPHAN' : '✓ Provisioning Synced'}</div>
-        </div>
-        <div class="check-box ${(s.rule_iot_apn_mismatch || s.rule_unrated_tariff) ? 'alert' : ''}">
-          <h4>2. APN &amp; Tariff Configuration</h4>
-          <div class="val">${s.primary_apn}</div>
-          <div class="sub">Tariff: ${s.tariff_code}</div>
-        </div>
-        <div class="check-box ${s.max_distinct_imeis >= 3 ? 'alert' : ''}">
-          <h4>3. Device &amp; IMEI Rotation</h4>
-          <div class="val">${s.device_type}</div>
-          <div class="sub">${s.max_distinct_imeis} Distinct IMEI(s) | ${s.max_unique_destinations} Destinations</div>
-        </div>
-        <div class="check-box ${(s.avg_night_ratio > 0.45 || s.rule_simbox_signature) ? 'alert' : ''}">
-          <h4>4. Cell Site &amp; Time Profile</h4>
-          <div class="val">${s.primary_cell_id}</div>
-          <div class="sub">${(s.avg_night_ratio * 100).toFixed(0)}% Night Traffic (${s.cell_area_type})</div>
-        </div>
-        <div class="check-box">
-          <h4>5. Entitlement &amp; Parent Pool</h4>
-          <div class="val">${fmtZAR(s.total_revenue_zar)} Billed</div>
-          <div class="sub">Bundle: ${s.entitlement_bundle_mb} MB | Parent: ${s.parent_account_id || 'None'}</div>
-        </div>
-      `;
+      <p class="subtle">Saves durability to local SQLite (<code>cases.sqlite3</code>). No external Remedy ticket or network block is triggered.</p>
+      <div class="row">
+        <button class="primary" type="submit">💾 Save Case Decision</button>
+        <button id="reload-case" type="button">↻ Reload Saved Case</button>
+      </div>
+    </form>
 
-      const shapDiv = document.getElementById("drill-shap");
-      shapDiv.innerHTML = "";
-      data.attributions.forEach(a => {
-        shapDiv.innerHTML += `
-          <div class="bar-row">
-            <div class="bar-label"><span>${a.feature}</span><span><b>${a.share_pct}%</b></span></div>
-            <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100, a.share_pct * 2.5)}%; background:var(--amber);"></div></div>
-          </div>
-        `;
-      });
+    <h3>Audit Decision History</h3>
+    <ol id="case-history" class="history"></ol>
+  </div>
+</dialog>
 
-      const dBody = document.getElementById("drill-daily-tbody");
-      dBody.innerHTML = "";
-      data.daily.slice(-14).reverse().forEach(d => {
-        dBody.innerHTML += `
-          <tr>
-            <td>${d.usage_date}</td>
-            <td>${d.data_mb.toFixed(1)} MB</td>
-            <td>${d.voice_mins.toFixed(1)} mins</td>
-            <td>${(d.night_usage_ratio * 100).toFixed(0)}%</td>
-            <td style="color:var(--amber); font-weight:600;">${fmtZAR(d.retail_equivalent_zar)}</td>
-            <td style="color:var(--emerald);">${fmtZAR(d.rated_amount_zar)}</td>
-          </tr>
-        `;
-      });
+<script>
+const $ = id => document.getElementById(id);
+const outcomeFields = ['confirmed_leakage_zar', 'cash_recovered_zar', 'cost_avoided_zar'];
+const filterFields = ['search', 'status', 'owner', 'archetype', 'plan', 'view', 'sort', 'order', 'top_k'];
+let dataset = null, datasets = [], current = null, summaryData = null, selected = new Set(), busy = false, queueRequest = 0, detailRequest = 0, savedQuery = '';
+
+/* Theme Switcher (MTN Bright default, optional Dark mode) */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  $('theme-toggle').textContent = theme === 'dark' ? '☀️ MTN Bright' : '🌙 Dark Theme';
+  try { localStorage.setItem('mtn_theme', theme); } catch {}
+}
+applyTheme((() => { try { return localStorage.getItem('mtn_theme') || 'bright'; } catch { return 'bright'; } })());
+$('theme-toggle').onclick = () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'bright' : 'dark';
+  applyTheme(next);
+};
+
+/* Workspace Sub-Tab Navigation */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => {
+    const target = btn.getAttribute('data-tab');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    $('tab-panel-queue').hidden = target !== 'queue';
+    $('tab-panel-hotspots').hidden = target !== 'hotspots';
+    $('tab-panel-benchmark').hidden = target !== 'benchmark';
+  };
+});
+
+/* Quick Status Filter Pills */
+function syncStatusPills() {
+  const currentStatus = $('status').value;
+  document.querySelectorAll('.status-pill-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-status') === currentStatus);
+  });
+}
+document.querySelectorAll('.status-pill-btn').forEach(btn => {
+  btn.onclick = () => {
+    $('status').value = btn.getAttribute('data-status');
+    syncStatusPills();
+    if (dataset && dataset.status === 'COMPLETED') {
+      task('Filtering queue…', async () => { await loadQueue(); feedback('Filtered by status: ' + $('status').value); });
     }
+  };
+});
+$('status').onchange = syncStatusPills;
 
-    async function actionCurrentSim(status) {
-      if (!currentSimId) return;
-      await fetch("/api/action", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sim_ids: [currentSimId], status })
-      });
-      await loadSummary();
-      await loadSimDetail(currentSimId);
+/* Workflow Stepper Highlighter */
+function updateStepper() {
+  const s1 = $('step-1'), s2 = $('step-2'), s3 = $('step-3'), s4 = $('step-4');
+  [s1, s2, s3, s4].forEach(el => { el.classList.remove('active', 'done'); });
+  if (!dataset) {
+    s1.classList.add('active');
+  } else if (dataset.status !== 'COMPLETED') {
+    s1.classList.add('done');
+    s2.classList.add('active');
+    if (dataset.quality?.valid && (dataset.quality.warning_count === 0 || $('ack').checked)) {
+      s2.classList.remove('active');
+      s2.classList.add('done');
+      s3.classList.add('active');
     }
+  } else {
+    s1.classList.add('done');
+    s2.classList.add('done');
+    s3.classList.add('done');
+    s4.classList.add('active');
+  }
+}
 
-    async function batchTicketTop25() {
-      if (!globalData || !globalData.queue) return;
-      const ids = globalData.queue.slice(0, 25).map(r => r.sim_id);
-      await fetch("/api/action", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sim_ids: ids, status: "TICKETED_TO_SME" })
-      });
-      await loadSummary();
-      if (currentSimId) await loadSimDetail(currentSimId);
+function node(tag, text, className) {
+  const n = document.createElement(tag);
+  if (text !== undefined) n.textContent = text;
+  if (className) n.className = className;
+  return n;
+}
+function money(v) {
+  return v === null || v === undefined ? 'Not recorded' : new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(v);
+}
+function dateTime(v) {
+  return v ? new Date(v).toLocaleString() : 'Not yet saved';
+}
+function feedback(message, error = false) {
+  for (const id of ['feedback', ...($('inspector').open ? ['case-feedback'] : [])]) {
+    $(id).textContent = message;
+    $(id).classList.toggle('error', error);
+  }
+}
+async function request(url, body) {
+  const r = await fetch(url, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  let data;
+  try { data = await r.json(); } catch { throw new Error('Server request failed. Retry or check the server log.'); }
+  if (!r.ok) { const e = new Error(data.error || 'Request failed'); e.data = data; throw e; }
+  return data;
+}
+async function task(message, work) {
+  if (busy) return;
+  busy = true;
+  feedback(message);
+  document.querySelectorAll('button').forEach(n => n.disabled = true);
+  $('dataset-select').disabled = true;
+  try {
+    await work();
+  } catch (e) {
+    feedback(e.message, true);
+  } finally {
+    busy = false;
+    document.querySelectorAll('button').forEach(n => n.disabled = false);
+    $('dataset-select').disabled = false;
+    updateRun();
+    updateStepper();
+  }
+}
+function fillOptions(id, values, defaults) {
+  const s = $(id), old = s.value;
+  s.replaceChildren();
+  for (const pair of [...defaults, ...values.map(v => [v, v.replaceAll('_', ' ')])]) {
+    const o = node('option', pair[1]);
+    o.value = pair[0];
+    s.append(o);
+  }
+  if ([...s.options].some(o => o.value === old)) s.value = old;
+}
+function showQuality(q) {
+  $('quality').hidden = false;
+  $('ack').checked = false;
+  $('quality-summary').textContent =
+    Object.entries(q.row_counts).map(([k, v]) => k.replaceAll('_', ' ') + ': ' + v.toLocaleString()).join(' · ') +
+    ' | ' + q.error_count + ' error(s), ' + q.warning_count + ' warning(s) | ' + (q.window_start || 'Unknown') + ' to ' + (q.window_end || 'Unknown');
+
+  $('quality-kpis').replaceChildren();
+  const kpiItems = [
+    ['Subscribers', (q.row_counts.subscribers || 0).toLocaleString() + ' SIMs'],
+    ['Daily Usage Rows', (q.row_counts.usage_daily || 0).toLocaleString() + ' rows'],
+    ['Billing Events', (q.row_counts.billing_events || 0).toLocaleString() + ' rows'],
+    ['Quality Gate', q.error_count + ' errors · ' + q.warning_count + ' warnings']
+  ];
+  for (const [label, val] of kpiItems) {
+    const box = node('div', undefined, 'quality-kpi');
+    box.append(node('small', label), node('strong', val));
+    $('quality-kpis').append(box);
+  }
+
+  $('quality-issues').replaceChildren();
+  for (const i of q.issues) {
+    const n = node('li', i.severity.toUpperCase() + ' · ' + i.table + (i.row ? ' row ' + i.row : '') + (i.column ? ' / ' + i.column : '') + ': ' + i.message);
+    n.classList.toggle('error', i.severity === 'error');
+    $('quality-issues').append(n);
+  }
+  if (q.issues_truncated) $('quality-issues').append(node('li', 'Only the first 200 issues are shown. Counts include all issues.'));
+  $('ack-wrap').hidden = !q.warning_count;
+  updateRun();
+  updateStepper();
+}
+function updateRun() {
+  $('run').disabled = busy || !dataset || !dataset.quality.valid || (dataset.quality.warning_count > 0 && !$('ack').checked && dataset.status !== 'COMPLETED');
+  $('run').textContent = dataset?.status === 'COMPLETED' ? '✓ Open Saved Detection Results' : '▶ Run Detection';
+}
+async function refreshDatasets() {
+  datasets = (await request('/api/datasets')).datasets;
+  const p = $('dataset-select');
+  p.replaceChildren(node('option', 'Choose a saved dataset…'));
+  p.options[0].value = '';
+  for (const d of datasets) {
+    const o = node('option', d.name + ' · ' + (d.status === 'COMPLETED' ? 'Completed ✓' : 'Quality review'));
+    o.value = d.id;
+    p.append(o);
+  }
+  if (dataset) p.value = dataset.id;
+}
+function clearWorkspace() {
+  queueRequest++;
+  detailRequest++;
+  current = null;
+  summaryData = null;
+  selected.clear();
+  $('workspace').hidden = true;
+  $('inspector').close();
+}
+async function chooseDataset(id) {
+  clearWorkspace();
+  dataset = datasets.find(d => d.id === id) || null;
+  history.replaceState(null, '', id ? '?dataset_id=' + encodeURIComponent(id) : location.pathname);
+  $('quality').hidden = !dataset;
+  if (!dataset) {
+    $('dataset-meta').textContent = 'Choose a saved dataset or validate three files.';
+    updateRun();
+    updateStepper();
+    return;
+  }
+  $('dataset-select').value = dataset.id;
+  showQuality(dataset.quality);
+  $('dataset-meta').textContent =
+    dataset.name + ' · ' + (dataset.source === 'synthetic' ? 'SYNTHETIC BENCHMARK' : 'UPLOADED DATA') +
+    ' · Window ' + dataset.quality.window_start + ' to ' + dataset.quality.window_end +
+    ' · As of ' + dataset.config.as_of_date + ' · Billing allowance ' + dataset.config.billing_grace_days + ' days';
+  $('upload-details').open = false;
+  if (dataset.status === 'COMPLETED') await loadQueue();
+  updateStepper();
+}
+function query() {
+  const q = new URLSearchParams({ dataset_id: dataset.id });
+  for (const id of filterFields) q.set(id, $(id).value);
+  return q.toString();
+}
+function updateSelection() {
+  const count = summaryData?.queue.length || 0;
+  $('selection-count').textContent = selected.size + ' selected';
+  $('select-all').checked = count > 0 && selected.size === count;
+  $('select-all').indeterminate = selected.size > 0 && selected.size < count;
+}
+async function loadQueue() {
+  if (!dataset) return;
+  const token = ++queueRequest, id = dataset.id, q = query();
+  $('queue-count').textContent = 'Loading queue…';
+  $('export').removeAttribute('href');
+  const d = await request('/api/summary?' + q);
+  if (token !== queueRequest || dataset?.id !== id) return;
+  summaryData = d;
+  savedQuery = q;
+  selected.clear();
+  $('workspace').hidden = false;
+  syncStatusPills();
+
+  $('freshness').textContent =
+    'Dataset window: ' + d.dataset.quality.window_start + ' – ' + d.dataset.quality.window_end +
+    ' · Last successful run: ' + dateTime(d.dataset.last_successful_run) +
+    ' · KPI totals & CSV export dynamically match your active queue filters';
+
+  fillOptions('owner', d.filter_options.owners, [['ALL', 'All owners'], ['UNASSIGNED', 'Unassigned']]);
+  fillOptions('plan', d.filter_options.plans, [['ALL', 'All plans']]);
+  fillOptions('archetype', d.filter_options.archetypes, [['ALL', 'All hypotheses']]);
+
+  $('metrics').replaceChildren();
+  const metricDefs = [
+    ['estimated_opportunity_zar', 'Estimated opportunity', 'Model Estimate · Mature Residual', true],
+    ['confirmed_leakage_zar', 'Confirmed leakage', 'Analyst Verified · Confirmed/Resolved', false],
+    ['cash_recovered_zar', 'Cash recovered', 'Analyst Verified · Resolved', false],
+    ['cost_avoided_zar', 'Cost avoided', 'Analyst Verified · Resolved', false]
+  ];
+  for (const [key, label, tag, isPrimary] of metricDefs) {
+    const n = node('div', undefined, isPrimary ? 'metric primary-metric' : 'metric');
+    n.append(
+      node('span', tag, 'metric-tag'),
+      node('small', label),
+      node('strong', money(d.totals[key])),
+      node('small', key === 'estimated_opportunity_zar'
+        ? 'Mature reference-value residual; unconfirmed'
+        : d.totals[key + '_recorded_count'] + ' case(s) with a recorded amount')
+    );
+    $('metrics').append(n);
+  }
+
+  $('pending-summary').textContent =
+    'Held outside Estimated Opportunity — Awaiting billing (grace window): ' + money(d.totals.pending_billing_zar) +
+    ' · Missing billing evidence: ' + money(d.totals.missing_billing_evidence_zar) +
+    '. Risk scores are prioritization ranks, not calibrated probabilities.';
+
+  $('benchmark-section').hidden = !d.benchmark;
+  $('accuracy-note').hidden = !!d.benchmark;
+  if (d.benchmark) {
+    const b = d.benchmark;
+    $('benchmark').textContent =
+      'Whole synthetic dataset, independent of queue filters. Precision@' + b.top_k + ': ' + (100 * b.hunter_precision_k).toFixed(1) +
+      '%; recall: ' + (100 * b.hunter_recall_k).toFixed(1) + '%; benign share in queue: ' + (100 * b.hunter_benign_share_k).toFixed(1) +
+      '%. These results are not validated production accuracy.';
+    $('benchmark-cards').replaceChildren();
+    for (const [lbl, val] of [
+      ['Precision@' + b.top_k + ' (Ghost SIM Hunter)', (100 * b.hunter_precision_k).toFixed(1) + '%'],
+      ['Naive R0 Baseline Precision@' + b.top_k, (100 * b.baseline_precision_k).toFixed(1) + '%'],
+      ['Recall@' + b.top_k + ' (of 180 Ghost SIMs)', (100 * b.hunter_recall_k).toFixed(1) + '%'],
+      ['Benign Look-Alikes in Top-' + b.top_k, (100 * b.hunter_benign_share_k).toFixed(1) + '%']
+    ]) {
+      const card = node('div', undefined, 'quality-kpi');
+      card.append(node('small', lbl), node('strong', val));
+      $('benchmark-cards').append(card);
     }
+  }
 
-    loadSummary();
-  </script>
+  /* Render RAN Cell Hotspots Table */
+  $('hotspots-body').replaceChildren();
+  for (const h of (d.cell_hotspots || [])) {
+    const tr = node('tr');
+    tr.append(
+      node('td', h.cell_id),
+      node('td', h.flagged_sim_count + ' / ' + h.sim_count + ' SIMs'),
+      node('td', money(h.estimated_opportunity_zar)),
+      node('td', money(h.pending_billing_zar)),
+      node('td', h.avg_risk_pct.toFixed(0) + ' / 100'),
+      node('td', h.top_hypothesis)
+    );
+    const actTd = node('td');
+    const filterBtn = node('button', 'Filter Queue →', 'inspect-pill');
+    filterBtn.type = 'button';
+    filterBtn.onclick = () => {
+      $('search').value = h.cell_id;
+      $('tab-btn-queue').click();
+      task('Filtering queue to cell ' + h.cell_id + '…', async () => {
+        await loadQueue();
+        feedback('Showing queue filtered to Cell ID: ' + h.cell_id);
+      });
+    };
+    actTd.append(filterBtn);
+    tr.append(actTd);
+    $('hotspots-body').append(tr);
+  }
+
+  /* Render Main Investigation Queue Table */
+  $('queue').replaceChildren();
+  for (const r of d.queue) {
+    const tr = node('tr');
+    const check = node('input');
+    check.type = 'checkbox';
+    check.setAttribute('aria-label', 'Select ' + r.sim_id);
+    check.onchange = () => {
+      check.checked ? selected.add(r.sim_id) : selected.delete(r.sim_id);
+      updateSelection();
+    };
+    const cell = node('td');
+    cell.append(check);
+    tr.append(cell);
+
+    const title = node('td');
+    const open = node('button', r.sim_id, 'link');
+    open.type = 'button';
+    open.onclick = () => openCase(r.sim_id).catch(e => feedback(e.message, true));
+    title.append(
+      open,
+      node('br'),
+      node('span', r.predicted_archetype_name, 'archetype-chip'),
+      node('span', (r.plan_type || '').replaceAll('_', ' ') + ' · Cell: ' + (r.primary_cell_id || 'N/A'), 'meta-inline')
+    );
+    tr.append(title);
+
+    const value = node('td');
+    const strongVal = node('strong', money(r.estimated_opportunity_zar));
+    value.append(strongVal);
+    if (r.pending_billing_zar || r.missing_billing_evidence_zar) {
+      value.append(node('span', 'Pending / missing billing evidence', 'meta-inline'));
+    } else if (r.total_retail_equiv_zar > 0) {
+      value.append(node('span', 'of ' + money(r.total_retail_equiv_zar) + ' gross usage', 'meta-inline'));
+    }
+    tr.append(value);
+
+    const riskPct = Math.round((r.risk_score || 0) * 100);
+    const riskTd = node('td');
+    const riskWrap = node('div', undefined, 'risk-wrap');
+    const riskBar = node('div', undefined, 'risk-bar');
+    const riskFill = node('div', undefined, 'risk-fill ' + (riskPct >= 75 ? 'high' : riskPct >= 45 ? 'med' : ''));
+    riskFill.style.width = Math.min(100, Math.max(4, riskPct)) + '%';
+    riskBar.append(riskFill);
+    riskWrap.append(node('strong', String(riskPct)), riskBar);
+    riskTd.append(riskWrap);
+    tr.append(riskTd);
+
+    const statusTd = node('td');
+    statusTd.append(node('span', r.case_status, 'badge badge-' + r.case_status));
+    tr.append(statusTd);
+
+    const ownerTd = node('td');
+    const ownerRow = node('div', undefined, 'row-between');
+    ownerRow.append(node('span', r.assigned_to || 'Unassigned'));
+    const inspectBtn = node('button', 'Inspect →', 'inspect-pill');
+    inspectBtn.type = 'button';
+    inspectBtn.onclick = () => openCase(r.sim_id).catch(e => feedback(e.message, true));
+    ownerRow.append(inspectBtn);
+    ownerTd.append(ownerRow);
+    tr.append(ownerTd);
+
+    $('queue').append(tr);
+  }
+  $('empty').hidden = d.queue.length > 0;
+  $('queue-count').textContent = 'Showing ' + d.queue.length + ' of ' + d.matching_count + ' matching cases';
+  $('export').href = '/api/export/queue.csv?' + savedQuery;
+  updateSelection();
+  updateStepper();
+}
+
+function toggleDismissal() {
+  const d = $('case-status').value === 'DISMISSED';
+  $('dismissal-fields').hidden = !d;
+  $('case-reason').required = d;
+  $('case-expiry').required = d;
+}
+
+async function openCase(sid) {
+  if (busy) return;
+  const token = ++detailRequest, id = dataset.id;
+  current = null;
+  $('case-feedback').textContent = 'Loading case…';
+  const d = await request('/api/sim/' + encodeURIComponent(sid) + '?dataset_id=' + encodeURIComponent(id));
+  if (token !== detailRequest || dataset?.id !== id) return;
+  current = { ...d, dataset_id: id };
+  const r = d.sim, c = d.case;
+  $('case-title').textContent = r.sim_id;
+  $('case-subtitle').textContent =
+    r.predicted_archetype_name + ' · Risk ' + (r.risk_score * 100).toFixed(0) + '/100 · Plan: ' + (r.plan_type || '').replaceAll('_', ' ');
+  $('evidence').textContent = r.investigation_summary;
+  $('recommendation').textContent = 'Suggested review action: ' + r.recommended_action;
+
+  /* Update Visual Stacked Coverage Bar */
+  const gross = Math.max(r.total_retail_equiv_zar || 0, 0.01);
+  const covered = (r.zero_rated_covered_zar || 0) + (r.entitlement_covered_zar || 0) + (r.rated_covered_zar || 0) + (r.invoice_covered_zar || 0) + (r.parent_covered_zar || 0);
+  const pending = (r.pending_billing_zar || 0) + (r.missing_billing_evidence_zar || 0);
+  const unbilled = r.unbilled_retail_zar || 0;
+  const vbar = $('coverage-visual-bar');
+  vbar.replaceChildren();
+  const sCov = node('div', undefined, 'seg-covered'); sCov.style.width = Math.min(100, (covered / gross) * 100) + '%';
+  const sPen = node('div', undefined, 'seg-pending'); sPen.style.width = Math.min(100, (pending / gross) * 100) + '%';
+  const sUnb = node('div', undefined, 'seg-unbilled'); sUnb.style.width = Math.min(100, (unbilled / gross) * 100) + '%';
+  vbar.append(sCov, sPen, sUnb);
+
+  $('coverage').replaceChildren();
+  for (const [key, label] of Object.entries({
+    total_retail_equiv_zar: 'Reference usage value',
+    zero_rated_covered_zar: 'Zero-rated data coverage',
+    entitlement_covered_zar: 'Valid entitlement coverage',
+    rated_covered_zar: 'Rated charge coverage',
+    invoice_covered_zar: 'Additional invoice coverage',
+    parent_covered_zar: 'Additional parent coverage',
+    unbilled_retail_zar: 'Mature residual (Opportunity)',
+    pending_billing_zar: 'Awaiting billing (Grace)',
+    missing_billing_evidence_zar: 'Missing billing evidence'
+  })) {
+    $('coverage').append(node('dt', label), node('dd', money(r[key])));
+  }
+  $('coverage').append(
+    node('dt', 'Observed APNs'), node('dd', r.observed_apns.join(', ') || 'None'),
+    node('dt', 'Primary cell'), node('dd', r.primary_cell_id)
+  );
+
+  $('ledger').replaceChildren();
+  for (const day of d.daily) {
+    const tr = node('tr');
+    tr.append(node('td', day.usage_date + ' / ' + day.primary_apn));
+    for (const key of [
+      'retail_equivalent_zar', 'zero_rated_covered_zar', 'entitlement_covered_zar',
+      'rated_covered_zar', 'invoice_covered_zar', 'parent_covered_zar',
+      'unbilled_retail_zar', 'pending_billing_zar', 'missing_billing_evidence_zar'
+    ]) {
+      tr.append(node('td', money(day[key])));
+    }
+    $('ledger').append(tr);
+  }
+
+  $('indicators').replaceChildren(...d.deviation_indicators.map(i => {
+    const li = node('li', i.feature + ': ' + i.share_pct + '%');
+    const track = node('div', undefined, 'ind-bar-track');
+    const fill = node('div', undefined, 'ind-bar-fill');
+    fill.style.width = Math.min(100, Math.max(2, i.share_pct)) + '%';
+    track.append(fill);
+    li.append(track);
+    return li;
+  }));
+
+  $('case-meta').textContent = 'Version ' + c.version + ' · Created ' + dateTime(c.created_at) + ' · Updated ' + dateTime(c.updated_at);
+  $('case-reviewer').value = $('reviewer').value;
+  $('case-owner').value = c.assigned_to || r.owner_team;
+  fillOptions('case-status', [], [c.status, ...c.allowed_transitions].map(v => [v, v]));
+  $('case-status').value = c.status;
+  $('case-note').value = '';
+  $('case-reason').value = c.dismissal_reason;
+  $('case-expiry').value = (c.whitelist_expires_at || '').slice(0, 10);
+  for (const f of outcomeFields) $(f).value = c[f] ?? '';
+  toggleDismissal();
+
+  $('case-history').replaceChildren();
+  for (const e of c.history.slice().reverse()) {
+    let text = dateTime(e.occurred_at) + ' · ' + e.actor + ' · ' + e.event_type + '\n' +
+      (e.before.status || 'Unrecorded') + ' → ' + e.after.status + ' · Owner: ' + (e.after.assigned_to || 'Unassigned');
+    if (e.note) text += '\n' + e.note;
+    if (e.after.dismissal_reason) text += '\nReason: ' + e.after.dismissal_reason + ' · Expires ' + e.after.whitelist_expires_at;
+    for (const f of outcomeFields) if (e.after[f] != null) text += '\n' + f.replaceAll('_', ' ') + ': ' + money(e.after[f]);
+    $('case-history').append(node('li', text));
+  }
+  $('case-feedback').textContent = '';
+  if (!$('inspector').open) $('inspector').showModal();
+}
+
+function readFile(input) {
+  const f = input.files[0];
+  if (!f) throw new Error('Choose all three files.');
+  if (f.size > 15 * 1024 * 1024) throw new Error(f.name + ' exceeds 15 MB.');
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve({ name: f.name, content_base64: String(r.result).split(',')[1] });
+    r.onerror = () => reject(new Error('Could not read ' + f.name));
+    r.readAsDataURL(f);
+  });
+}
+
+$('as-of').value = new Date().toISOString().slice(0, 10);
+$('ack').onchange = () => { updateRun(); updateStepper(); };
+$('dataset-select').onchange = () => task('Opening dataset…', async () => { await chooseDataset($('dataset-select').value); feedback('Dataset ready.'); });
+
+$('upload-form').onsubmit = e => {
+  e.preventDefault();
+  task('Reading and validating files…', async () => {
+    dataset = null;
+    clearWorkspace();
+    $('dataset-select').value = '';
+    $('quality').hidden = true;
+    history.replaceState(null, '', location.pathname);
+    const files = {};
+    for (const key of ['subscribers', 'usage_daily', 'billing_events']) files[key] = await readFile($(key));
+    let d;
+    try {
+      d = await request('/api/datasets/upload', { name: $('dataset-name').value, as_of_date: $('as-of').value, billing_grace_days: Number($('grace').value), files });
+    } catch (error) {
+      if (error.data?.quality) showQuality(error.data.quality);
+      throw error;
+    }
+    dataset = d.dataset;
+    await refreshDatasets();
+    await chooseDataset(dataset.id);
+    feedback('Files validated. Review data quality before running detection.');
+  });
+};
+
+$('demo').onclick = () => task('Preparing 3,000-SIM synthetic benchmark for review…', async () => {
+  dataset = (await request('/api/datasets/demo', {})).dataset;
+  await refreshDatasets();
+  await chooseDataset(dataset.id);
+  feedback('Synthetic benchmark ready for quality review. Click "Run Detection" to score.');
+});
+
+$('sample').onclick = () => task('Preparing 4-SIM edge-case sample (EXAMPLE-A..D) for review…', async () => {
+  dataset = (await request('/api/datasets/sample', {})).dataset;
+  await refreshDatasets();
+  await chooseDataset(dataset.id);
+  feedback('4-SIM edge-case sample ready. Check the quality warnings and click "Run Detection".');
+});
+
+$('run').onclick = () => task('Running record-level reconciliation and risk scoring…', async () => {
+  dataset = (await request('/api/datasets/run', { dataset_id: dataset.id, acknowledge_warnings: $('ack').checked })).dataset;
+  await refreshDatasets();
+  await loadQueue();
+  feedback('Detection complete. Click any SIM ID or "Inspect →" to review its 5-point evidence.');
+});
+
+$('filters').onsubmit = e => {
+  e.preventDefault();
+  task('Updating queue…', async () => {
+    await loadQueue();
+    feedback('Queue, KPI totals, and CSV export now reflect your active filters.');
+  });
+};
+
+$('reset-filters').onclick = () => {
+  $('search').value = '';
+  $('status').value = 'ALL';
+  $('owner').value = 'ALL';
+  $('archetype').value = 'ALL';
+  $('plan').value = 'ALL';
+  $('view').value = 'review';
+  $('sort').value = 'priority_score';
+  $('order').value = 'desc';
+  $('top_k').value = '100';
+  syncStatusPills();
+  if (dataset && dataset.status === 'COMPLETED') {
+    task('Resetting filters…', async () => { await loadQueue(); feedback('Filters reset to default view.'); });
+  }
+};
+
+$('select-all').onchange = () => {
+  selected = new Set($('select-all').checked ? summaryData.queue.map(r => r.sim_id) : []);
+  $('queue').querySelectorAll('input').forEach(c => c.checked = $('select-all').checked);
+  updateSelection();
+};
+
+$('close-inspector').onclick = () => { $('inspector').close(); detailRequest++; current = null; };
+$('inspector').addEventListener('cancel', () => { detailRequest++; current = null; });
+$('case-status').onchange = toggleDismissal;
+$('reload-case').onclick = () => { if (current) openCase(current.sim.sim_id).catch(e => feedback(e.message, true)); };
+
+$('case-form').onsubmit = e => {
+  e.preventDefault();
+  if (!current) return;
+  const c = current;
+  const p = {
+    dataset_id: c.dataset_id,
+    sim_ids: [c.sim.sim_id],
+    expected_versions: { [c.sim.sim_id]: c.case.version },
+    status: $('case-status').value,
+    actor: $('case-reviewer').value,
+    assigned_to: $('case-owner').value,
+    note: $('case-note').value
+  };
+  for (const f of outcomeFields) p[f] = $(f).value === '' ? null : Number($(f).value);
+  if (p.status === 'DISMISSED') {
+    p.dismissal_reason = $('case-reason').value;
+    p.whitelist_expires_at = $('case-expiry').value + 'T00:00:00+00:00';
+  }
+  task('Saving decision…', async () => {
+    await request('/api/action', p);
+    $('reviewer').value = p.actor;
+    await loadQueue();
+    busy = false;
+    await openCase(c.sim.sim_id);
+    busy = true;
+    feedback('Decision saved to internal SQLite case store. No external ticket was sent.');
+  });
+};
+
+$('batch-status').onchange = () => { $('batch-dismiss').hidden = $('batch-status').value !== 'DISMISSED'; };
+$('batch-form').onsubmit = e => {
+  e.preventDefault();
+  task('Saving selected cases…', async () => {
+    if (!selected.size || selected.size > 100) throw new Error('Select between 1 and 100 visible cases.');
+    const rows = summaryData.queue.filter(r => selected.has(r.sim_id));
+    const status = $('batch-status').value;
+    const p = {
+      dataset_id: dataset.id,
+      sim_ids: rows.map(r => r.sim_id),
+      expected_versions: Object.fromEntries(rows.map(r => [r.sim_id, r.case_version])),
+      status,
+      actor: $('reviewer').value,
+      note: $('batch-note').value
+    };
+    if ($('batch-owner').value.trim()) p.assigned_to = $('batch-owner').value;
+    if (status === 'DISMISSED') {
+      p.dismissal_reason = $('batch-reason').value;
+      p.whitelist_expires_at = $('batch-expiry').value + 'T00:00:00+00:00';
+    }
+    await request('/api/action', p);
+    await loadQueue();
+    feedback('Selected cases saved.');
+  });
+};
+
+task('Loading saved datasets…', async () => {
+  await refreshDatasets();
+  const id = new URLSearchParams(location.search).get('dataset_id');
+  if (id) await chooseDataset(id);
+  else if (datasets.length > 0) {
+    feedback('Ready. Choose a saved dataset from the dropdown, click a quick-load button above, or upload three files.');
+  } else {
+    feedback('Welcome to MTN Ghost SIM Hunter. Click "Load 3,000-SIM Synthetic Benchmark" above or upload three CSV files to begin.');
+  }
+});
+</script>
 </body>
 </html>

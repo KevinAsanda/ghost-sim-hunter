@@ -1,28 +1,9 @@
-"""
-Zero-Dependency Pure-Python + SQLite3 Engine & Isolation Forest Implementation
-for Ghost SIM Hunter (Zero-Revenue Active SIMs).
-
-Why this module exists:
-- Runs 100% out-of-the-box on standard Python (using built-in `sqlite3`, `math`, `random`, `csv`, `json`)
-  even when offline or without external C-extensions, while also exporting data compatible with
-  the DuckDB/scikit-learn/Streamlit stack.
-- Implements:
-  1. Synthetic Telecom Generator (3,000 SIMs x 30 days = 90,000 CDR daily rows across 5 injected
-     revenue leakage archetypes + 3 benign zero-revenue look-alike negative controls).
-  2. Layer 1 Multi-System SQL Reconciliation (SQLite3 in-memory / file engine) with explicit
-     entitlement filtering (Rollover Bundles, Enterprise Master Accounts, Whitelisted Zero-Rated APNs).
-  3. Layer 2 Pure-Python Isolation Forest (100 randomized isolation trees with path-length scoring
-     + standardized per-feature attribution drivers).
-  4. Layer 3 Automated 5-Point Forensic Investigation & Recommended Action generator.
-  5. Full Backtest Evaluation vs. Ground Truth & Naive R0 Threshold Baseline.
+"""Synthetic telecom fixtures, pure-Python Isolation Forest and benchmark evaluation.
+Both CLI and web flows use the record-level ledger in src.reconciliation.
 """
 
-import csv
-import json
 import math
-import os
 import random
-import sqlite3
 from datetime import date, timedelta
 from typing import Dict, List, Tuple, Any
 
@@ -47,13 +28,13 @@ FEATURE_COLS = [
 
 FEATURE_LABELS = {
     "unbilled_retail_zar": "Uncovered Retail Usage Value (ZAR)",
-    "total_data_mb": "30-Day Data Volume (MB)",
-    "total_voice_mins": "30-Day Voice Volume (Mins)",
+    "total_data_mb": "Analysis-window Data Volume (MB)",
+    "total_voice_mins": "Analysis-window Voice Volume (Mins)",
     "avg_night_ratio": "Off-Peak / Night Usage Ratio",
     "max_unique_destinations": "Unique Called/IP Destinations",
     "max_distinct_imeis": "Distinct IMEIs Rotated on SIM",
     "cell_concentration_index": "Static Cell Pinning Index",
-    "cell_zero_rev_density": "Cell ID Zero-Revenue Cluster Density",
+    "cell_zero_rev_density": "Cell Residual-Usage Density",
 }
 
 
@@ -121,10 +102,12 @@ def run_pure_isolation_forest(
     """
     Fit a 100-tree Isolation Forest on FEATURE_COLS and compute both:
     - layer2_ml_score in [0, 1]
-    - Top 3 SHAP-style standardized deviation feature attributions per SIM
+    - Top 3 standardized feature deviation indicators (not model explanations) per SIM
     """
     rng = random.Random(seed)
     n = len(rows)
+    if not rows:
+        return
     n_feat = len(FEATURE_COLS)
 
     # Compute mean and standard deviation (with minimum floor) per feature
@@ -173,20 +156,20 @@ def run_pure_isolation_forest(
             r[f"contrib_{fcol}"] = round(shares[j], 4)
 
         ordered_idx = sorted(range(n_feat), key=lambda k: shares[k], reverse=True)
-        r["shap_driver_1"] = f"{FEATURE_LABELS[FEATURE_COLS[ordered_idx[0]]]} ({shares[ordered_idx[0]]*100:.0f}%)"
-        r["shap_driver_2"] = f"{FEATURE_LABELS[FEATURE_COLS[ordered_idx[1]]]} ({shares[ordered_idx[1]]*100:.0f}%)"
-        r["shap_driver_3"] = f"{FEATURE_LABELS[FEATURE_COLS[ordered_idx[2]]]} ({shares[ordered_idx[2]]*100:.0f}%)"
+        r["deviation_indicator_1"] = f"{FEATURE_LABELS[FEATURE_COLS[ordered_idx[0]]]} ({shares[ordered_idx[0]]*100:.0f}%)"
+        r["deviation_indicator_2"] = f"{FEATURE_LABELS[FEATURE_COLS[ordered_idx[1]]]} ({shares[ordered_idx[1]]*100:.0f}%)"
+        r["deviation_indicator_3"] = f"{FEATURE_LABELS[FEATURE_COLS[ordered_idx[2]]]} ({shares[ordered_idx[2]]*100:.0f}%)"
 
 
 # ---------------------------------------------------------------------------
 # Synthetic Data Generation + SQLite3 Multi-System Reconciliation
 # ---------------------------------------------------------------------------
-def generate_and_run_pipeline(
+def generate_synthetic_tables(
     n_sims: int = 3000,
     n_days: int = 30,
     seed: int = 42,
     top_k: int = 100,
-) -> Tuple[List[Dict[str, Any]], Dict[str, Any], Dict[str, List[Dict[str, Any]]]]:
+) -> Dict[str, List[Dict[str, Any]]]:
     rng = random.Random(seed)
     end_date = date(2026, 10, 26)
     start_date = end_date - timedelta(days=n_days - 1)
@@ -455,309 +438,26 @@ def generate_and_run_pipeline(
             "total_revenue_zar": total_rev,
         })
 
-    # -----------------------------------------------------------------------
-    # Layer 1: SQLite3 Multi-System SQL Join & Reconciliation
-    # -----------------------------------------------------------------------
-    con = sqlite3.connect(":memory:")
-    con.row_factory = sqlite3.Row
-    cur = con.cursor()
+    # Explicit validity and billing-period provenance for the shared ledger.
+    for subscriber in subscribers:
+        subscriber["entitlement_valid_from"] = start_date.isoformat()
+        subscriber["entitlement_valid_to"] = end_date.isoformat()
+    for event in billing_events:
+        event["usage_period_start"] = start_date.isoformat()
+        event["usage_period_end"] = end_date.isoformat()
+    return dict(subscribers=subscribers, usage_daily=usage_daily, billing_events=billing_events)
 
-    cur.execute("""
-        CREATE TABLE subscribers (
-            sim_id TEXT, imsi TEXT, msisdn TEXT, account_id TEXT, parent_account_id TEXT,
-            plan_type TEXT, hlr_status TEXT, billing_status TEXT, tariff_code TEXT,
-            activation_date TEXT, channel TEXT, entitlement_bundle_mb REAL,
-            entitlement_voice_min REAL, is_enterprise_child INTEGER,
-            ground_truth_label TEXT, is_true_leakage INTEGER
-        )
-    """)
-    cur.executemany(
-        "INSERT INTO subscribers VALUES (:sim_id,:imsi,:msisdn,:account_id,:parent_account_id,:plan_type,:hlr_status,:billing_status,:tariff_code,:activation_date,:channel,:entitlement_bundle_mb,:entitlement_voice_min,:is_enterprise_child,:ground_truth_label,:is_true_leakage)",
-        subscribers,
-    )
 
-    cur.execute("""
-        CREATE TABLE usage_daily (
-            sim_id TEXT, usage_date TEXT, data_mb REAL, voice_mins REAL, sms_count INTEGER,
-            session_count INTEGER, night_usage_ratio REAL, unique_destinations INTEGER,
-            distinct_cells INTEGER, primary_cell_id TEXT, distinct_imeis INTEGER,
-            device_type TEXT, primary_apn TEXT, rated_amount_zar REAL, retail_equivalent_zar REAL
-        )
-    """)
-    cur.executemany(
-        "INSERT INTO usage_daily VALUES (:sim_id,:usage_date,:data_mb,:voice_mins,:sms_count,:session_count,:night_usage_ratio,:unique_destinations,:distinct_cells,:primary_cell_id,:distinct_imeis,:device_type,:primary_apn,:rated_amount_zar,:retail_equivalent_zar)",
-        usage_daily,
-    )
-
-    cur.execute("""
-        CREATE TABLE billing_events (
-            sim_id TEXT, billing_date TEXT, topup_zar REAL, bundle_purchase_zar REAL,
-            invoice_billed_zar REAL, parent_account_allocated_zar REAL, total_revenue_zar REAL
-        )
-    """)
-    cur.executemany(
-        "INSERT INTO billing_events VALUES (:sim_id,:billing_date,:topup_zar,:bundle_purchase_zar,:invoice_billed_zar,:parent_account_allocated_zar,:total_revenue_zar)",
-        billing_events,
-    )
-
-    cur.execute("CREATE TABLE cell_sites (cell_id TEXT, province TEXT, area_type TEXT, lat REAL, lon REAL)")
-    cur.executemany("INSERT INTO cell_sites VALUES (:cell_id,:province,:area_type,:lat,:lon)", CELL_SITES)
-
-    cur.execute("CREATE TABLE apn_catalog (apn TEXT, apn_type TEXT, is_zero_rated_eligible INTEGER)")
-    cur.executemany(
-        "INSERT INTO apn_catalog VALUES (:apn,:apn_type,:is_zero_rated_eligible)",
-        [{"apn": a["apn"], "apn_type": a["apn_type"], "is_zero_rated_eligible": int(a["is_zero_rated_eligible"])} for a in APN_CATALOG],
-    )
-
-    reconcile_sql = """
-    WITH usage_agg AS (
-        SELECT
-            sim_id,
-            COUNT(DISTINCT usage_date) AS active_days,
-            ROUND(SUM(data_mb), 2) AS total_data_mb,
-            ROUND(SUM(voice_mins), 2) AS total_voice_mins,
-            SUM(sms_count) AS total_sms_count,
-            SUM(session_count) AS total_sessions,
-            ROUND(AVG(night_usage_ratio), 4) AS avg_night_ratio,
-            MAX(unique_destinations) AS max_unique_destinations,
-            MAX(distinct_cells) AS max_distinct_cells,
-            MAX(primary_cell_id) AS primary_cell_id,
-            MAX(distinct_imeis) AS max_distinct_imeis,
-            MAX(device_type) AS device_type,
-            MAX(primary_apn) AS primary_apn,
-            ROUND(SUM(rated_amount_zar), 2) AS total_rated_zar,
-            ROUND(SUM(retail_equivalent_zar), 2) AS total_retail_equiv_zar
-        FROM usage_daily
-        GROUP BY sim_id
-    ),
-    billing_agg AS (
-        SELECT
-            sim_id,
-            SUM(topup_zar) AS topup_zar,
-            SUM(bundle_purchase_zar) AS bundle_purchase_zar,
-            SUM(invoice_billed_zar) AS invoice_billed_zar,
-            SUM(parent_account_allocated_zar) AS parent_account_allocated_zar,
-            SUM(total_revenue_zar) AS total_revenue_zar,
-            ROUND(SUM(topup_zar + bundle_purchase_zar + invoice_billed_zar), 2) AS direct_sim_revenue_zar
-        FROM billing_events
-        GROUP BY sim_id
-    )
-    SELECT
-        s.*,
-        u.active_days, u.total_data_mb, u.total_voice_mins, u.total_sms_count,
-        u.total_sessions, u.avg_night_ratio, u.max_unique_destinations,
-        u.max_distinct_cells, u.primary_cell_id, u.max_distinct_imeis,
-        u.device_type, u.primary_apn, u.total_rated_zar, u.total_retail_equiv_zar,
-        b.topup_zar, b.bundle_purchase_zar, b.invoice_billed_zar,
-        b.parent_account_allocated_zar, b.total_revenue_zar, b.direct_sim_revenue_zar,
-        COALESCE(a.apn_type, 'UNKNOWN') AS apn_type,
-        COALESCE(a.is_zero_rated_eligible, 0) AS is_zero_rated_eligible,
-        COALESCE(c.province, 'Unknown') AS cell_province,
-        COALESCE(c.area_type, 'Unknown') AS cell_area_type,
-        c.lat AS cell_lat, c.lon AS cell_lon
-    FROM subscribers s
-    JOIN usage_agg u ON s.sim_id = u.sim_id
-    JOIN billing_agg b ON s.sim_id = b.sim_id
-    LEFT JOIN apn_catalog a ON u.primary_apn = a.apn
-    LEFT JOIN cell_sites c ON u.primary_cell_id = c.cell_id
-    """
-    rows = [dict(r) for r in cur.execute(reconcile_sql).fetchall()]
-
-    # Compute cell density stats
-    cell_totals: Dict[str, int] = {}
-    cell_zero_rev: Dict[str, int] = {}
-    for r in rows:
-        cid = r["primary_cell_id"]
-        cell_totals[cid] = cell_totals.get(cid, 0) + 1
-        if r["direct_sim_revenue_zar"] == 0 and r["total_retail_equiv_zar"] > 500:
-            cell_zero_rev[cid] = cell_zero_rev.get(cid, 0) + 1
-
-    # Layer 1 Entitlement & Deterministic Rule Evaluation
-    for r in rows:
-        cid = r["primary_cell_id"]
-        r["cell_zero_rev_density"] = round(cell_zero_rev.get(cid, 0) / max(1, cell_totals.get(cid, 1)), 4)
-        r["cell_concentration_index"] = round(1.0 / max(1, r["max_distinct_cells"]), 4)
-
-        cov_data = min(r["total_data_mb"], r["entitlement_bundle_mb"])
-        cov_voice = min(r["total_voice_mins"], r["entitlement_voice_min"])
-        bundle_val_zar = cov_data * retail_data_rate + cov_voice * retail_voice_rate
-
-        r["is_bundle_entitled"] = (
-            r["entitlement_bundle_mb"] >= r["total_data_mb"] * 0.90
-            and r["entitlement_voice_min"] >= r["total_voice_mins"] * 0.90
-            and r["entitlement_bundle_mb"] > 0
-        )
-        r["is_enterprise_covered"] = (
-            bool(r["is_enterprise_child"])
-            and r["parent_account_id"] != ""
-            and r["parent_account_allocated_zar"] >= r["total_retail_equiv_zar"] * 0.50
-        )
-        r["is_legit_zero_rated_apn"] = (
-            bool(r["is_zero_rated_eligible"])
-            and r["primary_apn"] == "mtn.zero.edu"
-            and r["total_data_mb"] <= 8000.0
-            and r["total_voice_mins"] <= 5.0
-        )
-        r["is_benign_exempt"] = (
-            r["is_bundle_entitled"] or r["is_enterprise_covered"] or r["is_legit_zero_rated_apn"]
-        )
-
-        raw_unbilled = r["total_retail_equiv_zar"] - r["total_revenue_zar"] - bundle_val_zar
-        r["unbilled_retail_zar"] = 0.0 if r["is_benign_exempt"] else round(max(0.0, raw_unbilled), 2)
-
-        r["rule_hlr_ocs_orphan"] = (r["hlr_status"] == "ACTIVE") and (r["billing_status"] != "ACTIVE")
-        r["rule_unrated_tariff"] = (
-            r["total_rated_zar"] == 0
-            and r["unbilled_retail_zar"] > 300
-            and any(k in r["tariff_code"] for k in ("ZERO", "UNRATED", "BYPASS", "LEGACY"))
-        )
-        r["rule_iot_apn_mismatch"] = (r["plan_type"] == "IOT_M2M") and (r["primary_apn"] != "mtn.iot.m2m")
-        r["rule_internal_sim_abuse"] = (
-            r["plan_type"] == "INTERNAL_TEST"
-            and (r["cell_area_type"] == "Residential" or r["avg_night_ratio"] > 0.45 or r["total_data_mb"] > 5000)
-        )
-        r["rule_simbox_signature"] = (
-            r["total_voice_mins"] > 1200
-            and r["max_distinct_imeis"] >= 4
-            and r["max_unique_destinations"] >= 80
-            and r["direct_sim_revenue_zar"] == 0
-        )
-
-        rules_triggered = sum([
-            int(r["rule_hlr_ocs_orphan"]),
-            int(r["rule_unrated_tariff"]),
-            int(r["rule_iot_apn_mismatch"]),
-            int(r["rule_internal_sim_abuse"]),
-            int(r["rule_simbox_signature"]),
-        ])
-        r["rules_triggered_count"] = rules_triggered
-        r["layer1_rule_score"] = 0.0 if r["is_benign_exempt"] else round(
-            min(1.0, rules_triggered * 0.45 + (0.35 if r["unbilled_retail_zar"] > 500 else 0.0)), 4
-        )
-
-    # -----------------------------------------------------------------------
-    # Layer 2: Pure-Python Isolation Forest + Feature Attributions
-    # -----------------------------------------------------------------------
-    run_pure_isolation_forest(rows, n_trees=100, sample_size=256, seed=seed)
-
-    for r in rows:
-        if r["is_benign_exempt"]:
-            conf = 0.02 * r["layer2_ml_score"]
-        else:
-            conf = 0.60 * r["layer1_rule_score"] + 0.40 * r["layer2_ml_score"]
-        r["confidence_score"] = round(min(0.99, max(0.0, conf)), 4)
-        r["priority_score"] = round(r["unbilled_retail_zar"] * r["confidence_score"], 2)
-        r["naive_score"] = r["total_retail_equiv_zar"] if r["direct_sim_revenue_zar"] == 0 else 0.0
-
-    # Rank by Priority Score (Hunter) vs Naive Baseline Score
-    rows.sort(key=lambda x: x["priority_score"], reverse=True)
-    for i, r in enumerate(rows):
-        r["hunter_rank"] = i + 1
-
-    naive_sorted = sorted(rows, key=lambda x: x["naive_score"], reverse=True)
-    naive_rank_map = {r["sim_id"]: i + 1 for i, r in enumerate(naive_sorted)}
-    for r in rows:
-        r["naive_rank"] = naive_rank_map[r["sim_id"]]
-
-    # -----------------------------------------------------------------------
-    # Layer 3: Automated Root-Cause Investigation & Financial Valuations
-    # -----------------------------------------------------------------------
-    rec_map = TARIFF_ASSUMPTIONS["recoverable_rate_by_archetype"]
-    marginal_ratio = TARIFF_ASSUMPTIONS["marginal_network_cost_ratio"]
-    interconnect_rate = TARIFF_ASSUMPTIONS["interconnect_termination_per_min_zar"]
-
-    for r in rows:
-        if r["is_benign_exempt"]:
-            if r["is_bundle_entitled"]:
-                hyp = "BENIGN_BUNDLE_COVERED"
-                name = BENIGN_ARCHETYPES[hyp]["name"]
-                act = "No action required (Auto-suppressed — covered by valid rollover bundle)."
-                own = "Automated Entitlement Filter"
-                ev = f"Direct revenue is R0, but SIM holds {r['entitlement_bundle_mb']:,.0f} MB rollover bundle covering {r['total_data_mb']:,.0f} MB usage."
-            elif r["is_enterprise_covered"]:
-                hyp = "BENIGN_ENTERPRISE_POOLED"
-                name = BENIGN_ARCHETYPES[hyp]["name"]
-                act = "No action required (Auto-suppressed — billed via Corporate Parent Account)."
-                own = "Automated Entitlement Filter"
-                ev = f"Child SIM has R0 direct billing, but Parent Account {r['parent_account_id']} was billed R{r['parent_account_allocated_zar']:,.2f}."
-            else:
-                hyp = "BENIGN_ZERO_RATED_APN"
-                name = BENIGN_ARCHETYPES[hyp]["name"]
-                act = "No action required (Auto-suppressed — whitelisted educational APN within cap)."
-                own = "Automated Entitlement Filter"
-                ev = f"Traffic strictly confined to zero-rated APN '{r['primary_apn']}' ({r['total_data_mb']:,.0f} MB)."
-            rec_rate = 0.0
-        elif r["rule_simbox_signature"]:
-            hyp = "SIM_BOX_FRAUD"
-            info = LEAKAGE_ARCHETYPES[hyp]
-            name, act, own = info["name"], info["recommended_action"], info["owner_team"]
-            ev = f"Cell '{r['primary_cell_id']}' cluster: {r['total_voice_mins']:,.0f} voice mins across {r['max_unique_destinations']} unique callees, rotating {r['max_distinct_imeis']} IMEIs on '{r['device_type']}' with R0 revenue."
-            rec_rate = rec_map[hyp]
-        elif r["rule_hlr_ocs_orphan"]:
-            hyp = "PROVISIONING_ORPHAN"
-            info = LEAKAGE_ARCHETYPES[hyp]
-            name, act, own = info["name"], info["recommended_action"], info["owner_team"]
-            ev = f"HLR Status is '{r['hlr_status']}' while Billing/OCS Status is '{r['billing_status']}' (Account: {r['account_id']}). Consumed {r['total_data_mb']/1024:.2f} GB & {r['total_voice_mins']:,.0f} mins (R{r['unbilled_retail_zar']:,.2f} retail value) unbilled."
-            rec_rate = rec_map[hyp]
-        elif r["rule_iot_apn_mismatch"]:
-            hyp = "IOT_WRONG_APN"
-            info = LEAKAGE_ARCHETYPES[hyp]
-            name, act, own = info["name"], info["recommended_action"], info["owner_team"]
-            ev = f"Plan is 'IOT_M2M' ({r['tariff_code']}) but SIM is transmitting high-volume data on consumer APN '{r['primary_apn']}' using '{r['device_type']}' ({r['total_data_mb']/1024:.2f} GB unbilled)."
-            rec_rate = rec_map[hyp]
-        elif r["rule_internal_sim_abuse"]:
-            hyp = "FREE_INTERNAL_ABUSE"
-            info = LEAKAGE_ARCHETYPES[hyp]
-            name, act, own = info["name"], info["recommended_action"], info["owner_team"]
-            ev = f"Internal Test SIM ('{r['tariff_code']}') pinned to {r['cell_area_type']} cell '{r['primary_cell_id']}' on '{r['device_type']}' with {r['total_data_mb']/1024:.2f} GB usage ({r['avg_night_ratio']*100:.0f}% night traffic)."
-            rec_rate = rec_map[hyp]
-        elif r["rule_unrated_tariff"] or (
-            r["direct_sim_revenue_zar"] == 0
-            and r["total_revenue_zar"] == 0
-            and not r["is_benign_exempt"]
-            and r["unbilled_retail_zar"] > 600
-        ):
-            hyp = "RATING_MISCONFIG"
-            info = LEAKAGE_ARCHETYPES[hyp]
-            name, act, own = info["name"], info["recommended_action"], info["owner_team"]
-            ev = f"Active SIM on tariff '{r['tariff_code']}' and APN '{r['primary_apn']}' generated {r['total_sessions']} sessions ({r['total_data_mb']/1024:.2f} GB) rated at R0.00 in OCS (Retail value: R{r['unbilled_retail_zar']:,.2f})."
-            rec_rate = rec_map[hyp]
-        else:
-            hyp = "NORMAL_SUBSCRIBER"
-            name = BENIGN_ARCHETYPES["NORMAL_SUBSCRIBER"]["name"]
-            act = "No action required (Reconciled within normal bundle/tariff discount tolerance)."
-            own = "None"
-            ev = f"Billed R{r['total_revenue_zar']:,.2f} against R{r['total_retail_equiv_zar']:,.2f} retail usage."
-            rec_rate = 0.0
-            r["unbilled_retail_zar"] = 0.0
-            r["priority_score"] = 0.0
-
-        r["predicted_archetype_code"] = hyp
-        r["predicted_archetype_name"] = name
-        r["recommended_action"] = act
-        r["owner_team"] = own
-        r["investigation_summary"] = ev
-        r["recoverable_ratio"] = rec_rate
-
-        r["marginal_network_cost_zar"] = round(
-            (r["unbilled_retail_zar"] * marginal_ratio + r["total_voice_mins"] * interconnect_rate)
-            if r["unbilled_retail_zar"] > 0 else 0.0,
-            2,
-        )
-        r["est_recoverable_mid_zar"] = round(r["unbilled_retail_zar"] * rec_rate, 2)
-        r["est_recoverable_low_zar"] = round(r["est_recoverable_mid_zar"] * 0.75, 2)
-        r["est_recoverable_high_zar"] = round(min(r["unbilled_retail_zar"], r["est_recoverable_mid_zar"] * 1.20), 2)
-
-    # Re-sort rows after Layer 3 reconciliation adjustments
-    rows.sort(key=lambda x: x["priority_score"], reverse=True)
-    for i, r in enumerate(rows):
-        r["hunter_rank"] = i + 1
-
-    # -----------------------------------------------------------------------
-    # Backtest Evaluation vs. Ground Truth
-    # -----------------------------------------------------------------------
-    bt = compute_pure_backtest(rows, top_k=top_k)
-    return rows, bt, sample_daily_by_sim
+def generate_and_run_pipeline(n_sims=3000, n_days=30, seed=42, top_k=100):
+    from src.ingestion import validate_tables
+    from src.reconciliation import detect
+    tables = generate_synthetic_tables(n_sims, n_days, seed, top_k)
+    config = {"as_of_date": "2026-10-30", "billing_grace_days": 3}
+    normalized, report = validate_tables(tables, {k: list(v[0]) if v else [] for k, v in tables.items()}, config)
+    if not report["valid"]:
+        raise ValueError(report["issues"])
+    result = detect(normalized, config, synthetic=True, top_k=top_k)
+    return result["rows"], result["benchmark"], result["daily"]
 
 
 def compute_pure_backtest(rows: List[Dict[str, Any]], top_k: int = 100) -> Dict[str, Any]:
@@ -808,7 +508,7 @@ def compute_pure_backtest(rows: List[Dict[str, Any]], top_k: int = 100) -> Dict[
                 "in_naive_top_k": 0,
                 "total_retail_zar": 0.0,
                 "unbilled_retail_zar": 0.0,
-                "est_recoverable_mid_zar": 0.0,
+                "estimated_opportunity_zar": 0.0,
             }
         g = arch_groups[lbl]
         g["total_sims"] += 1
@@ -818,9 +518,10 @@ def compute_pure_backtest(rows: List[Dict[str, Any]], top_k: int = 100) -> Dict[
             g["in_naive_top_k"] += 1
         g["total_retail_zar"] = round(g["total_retail_zar"] + r["total_retail_equiv_zar"], 2)
         g["unbilled_retail_zar"] = round(g["unbilled_retail_zar"] + r["unbilled_retail_zar"], 2)
-        g["est_recoverable_mid_zar"] = round(g["est_recoverable_mid_zar"] + r["est_recoverable_mid_zar"], 2)
+        g["estimated_opportunity_zar"] = round(g["estimated_opportunity_zar"] + r["estimated_opportunity_zar"], 2)
 
     return {
+        "label": "Synthetic benchmark results — not validated production accuracy",
         "top_k": top_k,
         "total_sims": len(rows),
         "total_true_leakage_sims": total_true,
@@ -834,21 +535,8 @@ def compute_pure_backtest(rows: List[Dict[str, Any]], top_k: int = 100) -> Dict[
         "naive_value_share_k": round(n_val / max(1.0, total_true_retail_zar), 4),
         "hunter_benign_fp_k": h_fp_benign,
         "naive_benign_fp_k": n_fp_benign,
-        "hunter_benign_fpr_k": round(h_fp_benign / top_k, 4),
-        "naive_benign_fpr_k": round(n_fp_benign / top_k, 4),
-        "financials": {
-            "top_k_retail_zar": round(sum(r["unbilled_retail_zar"] for r in hunter_top), 2),
-            "top_k_marginal_cost_zar": round(sum(r["marginal_network_cost_zar"] for r in hunter_top), 2),
-            "top_k_rec_low_zar": round(sum(r["est_recoverable_low_zar"] for r in hunter_top), 2),
-            "top_k_rec_mid_zar": round(sum(r["est_recoverable_mid_zar"] for r in hunter_top), 2),
-            "top_k_rec_high_zar": round(sum(r["est_recoverable_high_zar"] for r in hunter_top), 2),
-            "all_flagged_count": len(flagged),
-            "all_retail_zar": round(sum(r["unbilled_retail_zar"] for r in flagged), 2),
-            "all_marginal_cost_zar": round(sum(r["marginal_network_cost_zar"] for r in flagged), 2),
-            "all_rec_low_zar": round(sum(r["est_recoverable_low_zar"] for r in flagged), 2),
-            "all_rec_mid_zar": round(sum(r["est_recoverable_mid_zar"] for r in flagged), 2),
-            "all_rec_high_zar": round(sum(r["est_recoverable_high_zar"] for r in flagged), 2),
-        },
+        "hunter_benign_share_k": round(h_fp_benign / max(1, len(hunter_top)), 4),
+        "naive_benign_share_k": round(n_fp_benign / max(1, len(naive_top)), 4),
         "curves": curves,
         "archetype_summary": sorted(arch_groups.values(), key=lambda x: x["unbilled_retail_zar"], reverse=True),
     }
