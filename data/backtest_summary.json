@@ -1,0 +1,385 @@
+{
+  "top_k": 100,
+  "total_sims": 3000,
+  "total_true_leakage_sims": 180,
+  "total_benign_lookalikes": 300,
+  "total_true_leakage_retail_zar": 651964.75,
+  "hunter_precision_k": 1.0,
+  "naive_precision_k": 0.23,
+  "hunter_recall_k": 0.5556,
+  "naive_recall_k": 0.1278,
+  "hunter_value_share_k": 0.6795,
+  "naive_value_share_k": 0.2115,
+  "hunter_benign_fp_k": 0,
+  "naive_benign_fp_k": 77,
+  "hunter_benign_fpr_k": 0.0,
+  "naive_benign_fpr_k": 0.77,
+  "financials": {
+    "top_k_retail_zar": 443005.39,
+    "top_k_marginal_cost_zar": 99546.22,
+    "top_k_rec_low_zar": 226359.38,
+    "top_k_rec_mid_zar": 301812.54,
+    "top_k_rec_high_zar": 349227.2,
+    "all_flagged_count": 241,
+    "all_retail_zar": 727108.52,
+    "all_marginal_cost_zar": 154810.95,
+    "all_rec_low_zar": 392299.99,
+    "all_rec_mid_zar": 523066.65,
+    "all_rec_high_zar": 611369.75
+  },
+  "curves": [
+    {
+      "K": 10,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 0.0,
+      "Hunter_Recall": 5.6,
+      "Naive_Recall": 0.0,
+      "Hunter_Value_Share": 9.6,
+      "Naive_Value_Share": 0.0
+    },
+    {
+      "K": 20,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 0.0,
+      "Hunter_Recall": 11.1,
+      "Naive_Recall": 0.0,
+      "Hunter_Value_Share": 18.1,
+      "Naive_Value_Share": 0.0
+    },
+    {
+      "K": 30,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 3.3,
+      "Hunter_Recall": 16.7,
+      "Naive_Recall": 0.6,
+      "Hunter_Value_Share": 26.5,
+      "Naive_Value_Share": 1.1
+    },
+    {
+      "K": 40,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 7.5,
+      "Hunter_Recall": 22.2,
+      "Naive_Recall": 1.7,
+      "Hunter_Value_Share": 34.5,
+      "Naive_Value_Share": 3.1
+    },
+    {
+      "K": 50,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 14.0,
+      "Hunter_Recall": 27.8,
+      "Naive_Recall": 3.9,
+      "Hunter_Value_Share": 41.1,
+      "Naive_Value_Share": 7.0
+    },
+    {
+      "K": 60,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 13.3,
+      "Hunter_Recall": 33.3,
+      "Naive_Recall": 4.4,
+      "Hunter_Value_Share": 47.0,
+      "Naive_Value_Share": 7.9
+    },
+    {
+      "K": 70,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 18.6,
+      "Hunter_Recall": 38.9,
+      "Naive_Recall": 7.2,
+      "Hunter_Value_Share": 52.6,
+      "Naive_Value_Share": 12.5
+    },
+    {
+      "K": 80,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 17.5,
+      "Hunter_Recall": 44.4,
+      "Naive_Recall": 7.8,
+      "Hunter_Value_Share": 57.8,
+      "Naive_Value_Share": 13.4
+    },
+    {
+      "K": 90,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 22.2,
+      "Hunter_Recall": 50.0,
+      "Naive_Recall": 11.1,
+      "Hunter_Value_Share": 62.9,
+      "Naive_Value_Share": 18.6
+    },
+    {
+      "K": 100,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 23.0,
+      "Hunter_Recall": 55.6,
+      "Naive_Recall": 12.8,
+      "Hunter_Value_Share": 67.9,
+      "Naive_Value_Share": 21.1
+    },
+    {
+      "K": 110,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 24.5,
+      "Hunter_Recall": 61.1,
+      "Naive_Recall": 15.0,
+      "Hunter_Value_Share": 72.6,
+      "Naive_Value_Share": 24.4
+    },
+    {
+      "K": 120,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 25.8,
+      "Hunter_Recall": 66.7,
+      "Naive_Recall": 17.2,
+      "Hunter_Value_Share": 77.3,
+      "Naive_Value_Share": 27.7
+    },
+    {
+      "K": 130,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 26.9,
+      "Hunter_Recall": 72.2,
+      "Naive_Recall": 19.4,
+      "Hunter_Value_Share": 81.7,
+      "Naive_Value_Share": 30.8
+    },
+    {
+      "K": 140,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 27.1,
+      "Hunter_Recall": 77.8,
+      "Naive_Recall": 21.1,
+      "Hunter_Value_Share": 85.9,
+      "Naive_Value_Share": 33.1
+    },
+    {
+      "K": 150,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 26.7,
+      "Hunter_Recall": 83.3,
+      "Naive_Recall": 22.2,
+      "Hunter_Value_Share": 89.8,
+      "Naive_Value_Share": 34.6
+    },
+    {
+      "K": 160,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 26.2,
+      "Hunter_Recall": 88.9,
+      "Naive_Recall": 23.3,
+      "Hunter_Value_Share": 93.5,
+      "Naive_Value_Share": 36.0
+    },
+    {
+      "K": 170,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 26.5,
+      "Hunter_Recall": 94.4,
+      "Naive_Recall": 25.0,
+      "Hunter_Value_Share": 96.8,
+      "Naive_Value_Share": 38.1
+    },
+    {
+      "K": 180,
+      "Hunter_Precision": 100.0,
+      "Naive_Precision": 25.6,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 25.6,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 38.8
+    },
+    {
+      "K": 190,
+      "Hunter_Precision": 94.7,
+      "Naive_Precision": 25.8,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 27.2,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 40.7
+    },
+    {
+      "K": 200,
+      "Hunter_Precision": 90.0,
+      "Naive_Precision": 27.5,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 30.6,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 44.4
+    },
+    {
+      "K": 210,
+      "Hunter_Precision": 85.7,
+      "Naive_Precision": 26.2,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 30.6,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 44.4
+    },
+    {
+      "K": 220,
+      "Hunter_Precision": 81.8,
+      "Naive_Precision": 26.8,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 32.8,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 46.7
+    },
+    {
+      "K": 230,
+      "Hunter_Precision": 78.3,
+      "Naive_Precision": 26.5,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 33.9,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 47.8
+    },
+    {
+      "K": 240,
+      "Hunter_Precision": 75.0,
+      "Naive_Precision": 28.3,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 37.8,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 51.8
+    },
+    {
+      "K": 250,
+      "Hunter_Precision": 72.0,
+      "Naive_Precision": 30.0,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 41.7,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 55.6
+    },
+    {
+      "K": 260,
+      "Hunter_Precision": 69.2,
+      "Naive_Precision": 31.5,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 45.6,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 59.3
+    },
+    {
+      "K": 270,
+      "Hunter_Precision": 66.7,
+      "Naive_Precision": 31.9,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 47.8,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 61.3
+    },
+    {
+      "K": 280,
+      "Hunter_Precision": 64.3,
+      "Naive_Precision": 32.9,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 51.1,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 64.3
+    },
+    {
+      "K": 290,
+      "Hunter_Precision": 62.1,
+      "Naive_Precision": 34.8,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 56.1,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 68.7
+    },
+    {
+      "K": 300,
+      "Hunter_Precision": 60.0,
+      "Naive_Precision": 36.3,
+      "Hunter_Recall": 100.0,
+      "Naive_Recall": 60.6,
+      "Hunter_Value_Share": 100.0,
+      "Naive_Value_Share": 72.5
+    }
+  ],
+  "archetype_summary": [
+    {
+      "ground_truth_label": "SIM_BOX_FRAUD",
+      "total_sims": 30,
+      "in_hunter_top_k": 30,
+      "in_naive_top_k": 14,
+      "total_retail_zar": 157467.99,
+      "unbilled_retail_zar": 157467.99,
+      "est_recoverable_mid_zar": 141721.21
+    },
+    {
+      "ground_truth_label": "FREE_INTERNAL_ABUSE",
+      "total_sims": 30,
+      "in_hunter_top_k": 30,
+      "in_naive_top_k": 9,
+      "total_retail_zar": 146283.98,
+      "unbilled_retail_zar": 146283.98,
+      "est_recoverable_mid_zar": 58513.61
+    },
+    {
+      "ground_truth_label": "PROVISIONING_ORPHAN",
+      "total_sims": 45,
+      "in_hunter_top_k": 13,
+      "in_naive_top_k": 0,
+      "total_retail_zar": 132491.68,
+      "unbilled_retail_zar": 132491.68,
+      "est_recoverable_mid_zar": 86119.57
+    },
+    {
+      "ground_truth_label": "RATING_MISCONFIG",
+      "total_sims": 40,
+      "in_hunter_top_k": 5,
+      "in_naive_top_k": 0,
+      "total_retail_zar": 110492.19,
+      "unbilled_retail_zar": 110492.19,
+      "est_recoverable_mid_zar": 93918.37
+    },
+    {
+      "ground_truth_label": "IOT_WRONG_APN",
+      "total_sims": 35,
+      "in_hunter_top_k": 22,
+      "in_naive_top_k": 0,
+      "total_retail_zar": 105228.91,
+      "unbilled_retail_zar": 105228.91,
+      "est_recoverable_mid_zar": 78921.66
+    },
+    {
+      "ground_truth_label": "BENIGN_ZERO_RATED_APN",
+      "total_sims": 80,
+      "in_hunter_top_k": 0,
+      "in_naive_top_k": 0,
+      "total_retail_zar": 96506.04,
+      "unbilled_retail_zar": 75143.77,
+      "est_recoverable_mid_zar": 63872.23
+    },
+    {
+      "ground_truth_label": "NORMAL_SUBSCRIBER",
+      "total_sims": 2520,
+      "in_hunter_top_k": 0,
+      "in_naive_top_k": 0,
+      "total_retail_zar": 5859941.19,
+      "unbilled_retail_zar": 0.0,
+      "est_recoverable_mid_zar": 0.0
+    },
+    {
+      "ground_truth_label": "BENIGN_ENTERPRISE_POOLED",
+      "total_sims": 100,
+      "in_hunter_top_k": 0,
+      "in_naive_top_k": 58,
+      "total_retail_zar": 578282.88,
+      "unbilled_retail_zar": 0.0,
+      "est_recoverable_mid_zar": 0.0
+    },
+    {
+      "ground_truth_label": "BENIGN_BUNDLE_COVERED",
+      "total_sims": 120,
+      "in_hunter_top_k": 0,
+      "in_naive_top_k": 19,
+      "total_retail_zar": 492374.66,
+      "unbilled_retail_zar": 0.0,
+      "est_recoverable_mid_zar": 0.0
+    }
+  ]
+}
